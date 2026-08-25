@@ -316,3 +316,9 @@ Two breakpoints. **≤900px** stacks the two panes vertically and narrows the si
   rather than something standing in the room — say if it should take up floor space.
 - **Floor WC** is 400 × 700 × 800, the usual close-coupled envelope, and now the default.
   The wall-hung one is still in the palette.
+- **Toilet roll stand** is 180 × 180 × 700. Next blocks automated requests, so the linked
+  product's own figures could not be read and these are a normal free-standing holder.
+  The 3D model is built to fill that box — post up the back, arm cantilevered forward with
+  the roll in use, spike at the front for spares — which is why the arm reach is what sets
+  the depth. Widening the default is a **link-affecting change**: see the compatibility
+  section. Adding a second, roomier type is the safe way to do it.

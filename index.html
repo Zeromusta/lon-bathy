@@ -708,9 +708,9 @@ const GLYPH = {
                      <circle class="glyph" cx="0" cy="0" r="${Math.max(8,Math.min(w,d)/2-28)}"/>`,
   fshelf:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}" rx="10"/>
                  <line class="glyph" x1="${-w/2}" y1="${d/2-36}" x2="${w/2}" y2="${d/2-36}"/>`,
-  rollstand:(w,d)=>`<circle class="glyph" cx="0" cy="0" r="${Math.min(w,d)/2}"/>
-                    <circle class="glyph f" cx="0" cy="0" r="${Math.max(12,Math.min(w,d)/2-24)}"/>
-                    <circle class="glyph" cx="0" cy="0" r="${Math.max(5,Math.min(w,d)*0.06)}"/>`,
+  rollstand:(w,d)=>`<ellipse class="glyph" cx="0" cy="0" rx="${w/2}" ry="${d/2}"/>
+                    <circle class="glyph f" cx="0" cy="${d*0.1}" r="${Math.max(14,Math.min(w,d)*0.32)}"/>
+                    <rect class="glyph f" x="${-w*0.11}" y="${-d/2+5}" width="${w*0.22}" height="${Math.max(8,d*0.15)}"/>`,
   frame:(w,d)=>`<rect class="glyph" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}"/>
                 <rect class="glyph" x="${-w/2+42}" y="${-d/2+42}" width="${Math.max(16,w-84)}" height="${Math.max(16,d-84)}"/>`,
   mirror:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${Math.max(d,34)}"/>`,
@@ -1780,28 +1780,49 @@ function itemMesh(it){
       break;
     }
     case "rollstand":{
-      // weighted disc, a pole, and spare rolls stacked up it
-      const r     = Math.min(W,D)/2;
+      // Oval base, a post up the back, and an arm cantilevered forward at the
+      // top carrying the roll in use. Spares go on a spike at the front. The
+      // whole thing stays inside W x D x H, so the plan outline still means
+      // something — the roll on the arm is what sets the depth.
+      const rx = W/2, rz = D/2;
+      const steel  = () => new THREE.MeshLambertMaterial({color:C3.metal});
+      const tissue = () => new THREE.MeshLambertMaterial({color:0xF7F5F1});
+
       const baseH = Math.max(12, H*0.02);
-      const poleR = Math.max(5, r*0.085);
-      const steel = () => new THREE.MeshLambertMaterial({color:C3.metal});
-
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(r, r, baseH, 28), steel());
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, baseH, 36), steel());
+      base.scale.set(rx, 1, rz*0.98);
       base.position.y = baseH/2; g.add(base);
-      const pole = new THREE.Mesh(new THREE.CylinderGeometry(poleR, poleR, H-baseH, 12), steel());
-      pole.position.y = baseH + (H-baseH)/2; g.add(pole);
-      const knobR = poleR*2.1;
-      const knob = new THREE.Mesh(new THREE.SphereGeometry(knobR, 14, 10), steel());
-      knob.position.y = H - knobR; g.add(knob);   // stay inside the declared height
 
-      const rollR = Math.max(poleR*2, Math.min(r*0.95, 58));   // a roll is ~115 across
-      const rollH = 102, gap = 14;
-      const fits  = Math.floor((H - baseH - poleR*4) / (rollH + gap));
-      for(let i = 0; i < Math.max(1, Math.min(5, fits)); i++){
-        const roll = new THREE.Mesh(new THREE.CylinderGeometry(rollR, rollR, rollH, 22),
-          new THREE.MeshLambertMaterial({color:0xF7F5F1}));
-        roll.position.y = baseH + gap + i*(rollH + gap) + rollH/2;
-        g.add(roll);
+      const postT = Math.max(18, Math.min(W,D)*0.19);
+      const zPost = -rz + postT*0.9;
+      const post = boxMesh(postT, H - baseH, postT*0.78, C3.metal);
+      post.position.set(0, baseH + (H-baseH)/2, zPost); g.add(post);
+
+      // the roll in use, threaded on the arm — the arm is the spindle
+      const rollR = Math.min(57, rx*0.82, H*0.17);
+      const rollW = Math.min(105, D*0.6);
+      const armY  = H - rollR - Math.max(14, H*0.028);
+      const zRoll = Math.min(rz - rollW/2 - 4, zPost + postT*0.5 + rollW*0.62);
+      const armL  = (zRoll + rollW/2) - zPost;
+      const arm = boxMesh(postT*0.6, postT*0.6, armL, C3.metal);
+      arm.position.set(0, armY, zPost + armL/2); g.add(arm);
+      const hung = new THREE.Mesh(new THREE.CylinderGeometry(rollR, rollR, rollW, 24), tissue());
+      hung.rotation.x = Math.PI/2;
+      hung.position.set(0, armY, zRoll); g.add(hung);
+      // a couple of sheets hanging off the front of it
+      const tail = boxMesh(rollW*0.92, rollR*1.5, 5, 0xFBFAF8);
+      tail.position.set(0, armY - rollR*0.85, zRoll + rollR*0.92); g.add(tail);
+
+      // spares stacked on a spike at the front
+      const spikeR = Math.max(5, postT*0.16);
+      const zSpare = Math.min(rz - rollR - 6, zPost + postT + rollR*0.5);
+      const spareH = 102, stack = 2, seam = 7;   // a seam, or the stack reads as one tube
+      const spikeH = baseH + stack*(spareH + seam) + 46;
+      const spike = new THREE.Mesh(new THREE.CylinderGeometry(spikeR, spikeR, spikeH, 12), steel());
+      spike.position.set(0, spikeH/2, zSpare); g.add(spike);
+      for(let i = 0; i < stack; i++){
+        const spare = new THREE.Mesh(new THREE.CylinderGeometry(rollR, rollR, spareH, 24), tissue());
+        spare.position.set(0, baseH + i*(spareH + seam) + spareH/2, zSpare); g.add(spare);
       }
       break;
     }
