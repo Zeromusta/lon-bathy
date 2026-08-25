@@ -119,6 +119,9 @@ h2.grp:first-child{margin-top:2px}
   width:78px;background:var(--chrome);border:1px solid var(--chrome-line);border-radius:4px;
   padding:5px 7px;font-family:"Roboto Mono",monospace;font-size:13px;text-align:right;
 }
+.field input[type=checkbox]{
+  width:17px;height:17px;margin:0 30px 0 0;accent-color:var(--select);cursor:pointer;
+}
 .btnrow{display:flex;gap:5px;margin:10px 0}
 .btnrow button{
   flex:1;background:var(--chrome-3);border:1px solid var(--chrome-line);border-radius:4px;
@@ -174,6 +177,14 @@ h2.grp:first-child{margin-top:2px}
   border-left:2px solid var(--chrome-line);padding-left:10px;margin:14px 0 0;
 }
 .note b{color:var(--on-chrome);font-weight:500}
+
+.no3d{
+  margin:auto;max-width:430px;padding:26px;text-align:left;
+  color:var(--on-chrome-dim);font-size:13px;line-height:1.6;
+}
+.no3d b{color:var(--on-chrome);font-weight:500}
+.no3d i{color:var(--on-chrome);font-style:normal;font-family:"Roboto Mono",monospace;font-size:12px}
+.no3d-err{font-family:"Roboto Mono",monospace;font-size:11px;color:#6E7A85}
 
 /* ---------- stage ---------- */
 #stage{flex:1;display:flex;min-width:0;background:var(--chrome)}
@@ -299,11 +310,12 @@ h2.grp:first-child{margin-top:2px}
         <svg id="plan"></svg>
         <div class="itembar" id="itembar" hidden>
           <span class="ib-name" id="ib-name"></span>
+          <button id="ib-behind" title="Select what's underneath (B)" hidden>Behind</button>
           <button id="ib-rot" title="Rotate 90° (R)">Rotate</button>
           <button id="ib-dup">Duplicate</button>
           <button id="ib-del" class="ib-danger" title="Delete (Del)">Delete</button>
         </div>
-        <div class="hint">Drag to move · click to select · R rotates · arrows nudge</div>
+        <div class="hint">Drag to move · click to select · R rotates · B steps under · arrows nudge</div>
       </div>
       <div class="pane" id="pane3d">
         <div class="pane-hd">3D</div>
@@ -386,18 +398,21 @@ const CAT = [
  {g:"Sanitaryware", items:[
   {t:"bath",      n:"Bath",             w:1500,d:750, h:550,  glyph:"bath"},
   {t:"wc",        n:"WC (wall hung)",   w:400, d:540, h:400,  mount:400, glyph:"wc"},
+  {t:"wcfloor",   n:"WC (floor)",       w:400, d:700, h:800,  glyph:"wc", mesh:"wcfloor"},
   {t:"duct",      n:"Duct / boxing",    w:1200,d:200, h:2700, glyph:"solid"},
   {t:"vanity",    n:"Vanity, 1 basin",  w:1200,d:450, h:850,  glyph:"vanity"},
   {t:"basin",     n:"Basin only",       w:550, d:400, h:200,  mount:800, glyph:"basin"},
   {t:"glass",     n:"Shower glass",     w:800, d:20,  h:2000, glyph:"glass"},
   {t:"head",      n:"Shower head",      w:250, d:120, h:120,  mount:2050, glyph:"head"},
-  {t:"gully",     n:"Linear drain",     w:800, d:80,  h:10,   glyph:"drain"}
+  {t:"gully",     n:"Linear drain",     w:800, d:80,  h:10,   glyph:"drain"},
+  {t:"gullyrnd",  n:"Round drain",      w:120, d:120, h:10,   glyph:"drainround"}
  ]},
  {g:"Mirrors & storage", items:[
   {t:"mirror",    n:"Mirror",           w:800, d:30,  h:900,  mount:1050, glyph:"mirror"},
   {t:"mircab",    n:"Mirror cabinet",   w:800, d:150, h:700,  mount:1150, glyph:"mirror"},
   {t:"cornersh",  n:"Corner shelf",     w:200, d:200, h:1200, glyph:"shelf"},
   {t:"shelf",     n:"Open shelf",       w:600, d:150, h:900,  mount:1200, glyph:"shelf"},
+  {t:"floatshelf",n:"Floating shelf",   w:600, d:200, h:40,   mount:1200, glyph:"fshelf"},
   {t:"cab",       n:"Tall cupboard",    w:400, d:350, h:1800, glyph:"solid"},
   {t:"niche",     n:"Recessed niche",   w:400, d:100, h:600,  mount:1100, glyph:"shelf"}
  ]},
@@ -409,7 +424,8 @@ const CAT = [
   {t:"plantshort",n:"Pot plant, short", w:300, d:300, h:600,  glyph:"plant"},
   {t:"stool",     n:"Stool",            w:350, d:350, h:450,  glyph:"solid"},
   {t:"basket",    n:"Laundry basket",   w:400, d:400, h:600,  glyph:"solid"},
-  {t:"bin",       n:"Bin",              w:250, d:250, h:400,  glyph:"solid"}
+  {t:"bin",       n:"Bin",              w:250, d:250, h:400,  glyph:"solid"},
+  {t:"chute",     n:"Laundry chute",    w:400, d:200, h:400,  mount:900, glyph:"frame"}
  ]}
 ];
 const DEF = {};
@@ -426,7 +442,7 @@ function startingLayout(){
     mk("gully", 1400, 120,   0,  "Linear drain"),
     mk("vanity", 225, 1800, 270, "Vanity"),
     mk("mircab",  75, 1800, 270, "Mirror cabinet"),
-    mk("wc",    1530, 1200, 90,  "WC"),
+    mk("wcfloor", 1450, 1200, 90, "WC"),
     mk("bath",  1425, 2750, 90,  "Bath"),
     mk("rail",    55, 2900, 90,  "Towel rail"),
     mk("planttall", 1600, 1750, 0, "Pot plant, tall")
@@ -435,7 +451,7 @@ function startingLayout(){
 let uid = 1;
 function mk(t, cx, cy, rot, name){
   const d = DEF[t];
-  return {id:uid++, t, n:name||d.n, x:cx, y:cy, w:d.w, d:d.d, h:d.h, rot:rot||0, mount:d.mount||0};
+  return {id:uid++, t, n:name||d.n, x:cx, y:cy, w:d.w, d:d.d, h:d.h, rot:rot||0, mount:d.mount||0, noclash:0};
 }
 
 let items = startingLayout();
@@ -497,14 +513,29 @@ function overlaps(a,b){
 }
 
 /* recessed or in-the-floor things never clash with anything */
-const PHANTOM = new Set(["mirror","niche","head","gully","hook"]);
+const PHANTOM = new Set(["mirror","niche","head","gully","gullyrnd","hook","chute"]);
 const vTop = i => (i.mount||0) + i.h;
 const vOv = (a,b) => Math.min(vTop(a),vTop(b)) - Math.max(a.mount||0, b.mount||0) > 5;
+const inert = i => PHANTOM.has(i.t) || !!i.noclash;
 function clashes(it){
-  if(PHANTOM.has(it.t)) return false;
+  if(inert(it)) return false;
   if(outsideRoom(it)) return true;
-  return items.some(o => o.id!==it.id && !PHANTOM.has(o.t) && vOv(it,o) && overlaps(it,o));
+  return items.some(o => o.id!==it.id && !inert(o) && vOv(it,o) && overlaps(it,o));
 }
+
+/* every item whose footprint covers this point, topmost first — the stack
+   the Behind button walks down */
+function pointInItem(it, px, py){
+  const c = corners(it);
+  let ins = false;
+  for(let i=0,j=3;i<4;j=i++){
+    const [xi,yi]=c[i], [xj,yj]=c[j];
+    if((yi>py)!==(yj>py) && px < (xj-xi)*(py-yi)/(yj-yi)+xi) ins = !ins;
+  }
+  return ins;
+}
+const itemsAt = (px,py) => items.filter(i=>pointInItem(i,px,py))
+                                .sort((a,b)=>(b.mount||0)-(a.mount||0));
 
 /* nearest blocker in each direction, from the item's bounding box */
 function gaps(it){
@@ -623,6 +654,12 @@ const GLYPH = {
   head:(w,d)=>`<circle class="glyph f" cx="0" cy="0" r="${Math.min(w,d)/2}"/>
                <path class="glyph" d="M ${-w/2-90} -60 h -60 M ${-w/2-90} 0 h -80 M ${-w/2-90} 60 h -60"/>`,
   drain:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}" rx="14"/>`,
+  drainround:(w,d)=>`<circle class="glyph f" cx="0" cy="0" r="${Math.min(w,d)/2}"/>
+                     <circle class="glyph" cx="0" cy="0" r="${Math.max(8,Math.min(w,d)/2-28)}"/>`,
+  fshelf:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}" rx="10"/>
+                 <line class="glyph" x1="${-w/2}" y1="${d/2-36}" x2="${w/2}" y2="${d/2-36}"/>`,
+  frame:(w,d)=>`<rect class="glyph" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}"/>
+                <rect class="glyph" x="${-w/2+42}" y="${-d/2+42}" width="${Math.max(16,w-84)}" height="${Math.max(16,d-84)}"/>`,
   mirror:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${Math.max(d,34)}"/>`,
   shelf:(w,d)=>`<rect class="glyph" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}"/>
                 <line class="glyph" x1="${-w/2}" y1="${-d/2}" x2="${w/2}" y2="${d/2}"/>`,
@@ -709,6 +746,29 @@ function renderChips(){
    INTERACTION
    ===================================================================== */
 let drag = null;
+let pickStack = [], pickIdx = 0;
+
+/* The stack under the last click, pruned of anything since deleted. If the
+   selection moved on some other way, rebuild it from the item's centre. */
+function currentStack(){
+  const it = items.find(i=>i.id===sel);
+  if(!it) return [];
+  let st = pickStack.filter(id => items.some(i=>i.id===id));
+  if(!st.includes(sel)){
+    st = itemsAt(it.x, it.y).map(i=>i.id);
+    if(!st.includes(sel)) st.unshift(sel);
+  }
+  return st;
+}
+function pickBehind(){
+  const st = currentStack();
+  if(st.length < 2) return;
+  pickStack = st;
+  pickIdx = (st.indexOf(sel) + 1) % st.length;
+  sel = st[pickIdx];
+  refresh(true);
+}
+
 function svgPt(evt){
   const p = svg.createSVGPoint();
   p.x = evt.clientX; p.y = evt.clientY;
@@ -717,12 +777,16 @@ function svgPt(evt){
 
 svg.addEventListener("pointerdown", e=>{
   const g = e.target.closest(".item");
-  if(!g){ sel=null; refresh(); return; }
+  if(!g){ sel=null; pickStack=[]; refresh(); return; }
   const id = +g.dataset.id;
   const it = items.find(i=>i.id===id);
   sel = id;
   setPanel("inspect");
   const p = svgPt(e);
+  // what else is under the cursor, so Behind can walk down the pile
+  pickStack = itemsAt(p.x, p.y).map(i=>i.id);
+  if(!pickStack.includes(id)) pickStack.unshift(id);
+  pickIdx = pickStack.indexOf(id);
   drag = {id, ox:p.x-it.x, oy:p.y-it.y, moved:false};
   svg.style.cursor = "grabbing";
   svg.setPointerCapture(e.pointerId);
@@ -769,6 +833,7 @@ document.addEventListener("keydown", e=>{
   const map = {ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]};
   if(map[e.key]){ it.x+=map[e.key][0]; it.y+=map[e.key][1]; refresh(); e.preventDefault(); }
   else if(e.key==="r"||e.key==="R"){ it.rot=(it.rot+(e.shiftKey?-90:90)+360)%360; refresh(); }
+  else if(e.key==="b"||e.key==="B"){ pickBehind(); e.preventDefault(); }
   else if(e.key==="Delete"||e.key==="Backspace"){ delSel(); e.preventDefault(); }
   else if(e.key==="Escape"){ sel=null; refresh(); }
 });
@@ -813,7 +878,8 @@ let fileMsg = null, fileMsgErr = false;
 const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const slug = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "layout";
 const itemData = () => items.map(i=>({t:i.t, n:i.n, x:Math.round(i.x), y:Math.round(i.y),
-                                      w:i.w, d:i.d, h:i.h, rot:i.rot, mount:i.mount||0}));
+                                      w:i.w, d:i.d, h:i.h, rot:i.rot, mount:i.mount||0,
+                                      noclash:i.noclash?1:0}));
 const itemsJSON = () => JSON.stringify(itemData());
 
 function snapshot(name){
@@ -835,7 +901,7 @@ function restore(snap){
     id:uid++, t:i.t, n:i.n || DEF[i.t].n,
     x:+i.x||0, y:+i.y||0,
     w:+i.w || DEF[i.t].w, d:+i.d || DEF[i.t].d, h:+i.h || DEF[i.t].h,
-    rot:+i.rot||0, mount:+i.mount||0
+    rot:+i.rot||0, mount:+i.mount||0, noclash:i.noclash?1:0
   }));
   sel = null;
   currentName = snap.name || "Untitled";
@@ -937,6 +1003,7 @@ function compactItems(list){
     if((+i.d||0)      !== (+d.d||0))      extra.d     = +i.d;
     if((+i.h||0)      !== (+d.h||0))      extra.h     = +i.h;
     if((+i.mount||0)  !== (+d.mount||0))  extra.mount = +i.mount||0;
+    if(i.noclash)                         extra.nc    = 1;
     if(Object.keys(extra).length) tup.push(extra);
     return tup;
   });
@@ -959,7 +1026,8 @@ function expandItems(tuples){
       d: "d" in e ? +e.d : +d.d,
       h: "h" in e ? +e.h : +d.h,
       rot: +rot||0,
-      mount: "mount" in e ? +e.mount||0 : (+d.mount||0)
+      mount: "mount" in e ? +e.mount||0 : (+d.mount||0),
+      noclash: e.nc ? 1 : 0
     };
   });
 }
@@ -1076,7 +1144,11 @@ function renderItemBar(){
   if(!it){ bar.hidden = true; return; }
   bar.hidden = false;
   document.getElementById("ib-name").textContent = it.n;
+  const st = currentStack(), b = document.getElementById("ib-behind");
+  b.hidden = st.length < 2;
+  b.textContent = st.length < 2 ? "Behind" : `Behind ${st.indexOf(sel)+1}/${st.length}`;
 }
+document.getElementById("ib-behind").addEventListener("click", pickBehind);
 document.getElementById("ib-rot").addEventListener("click", ()=>rotSel(90));
 document.getElementById("ib-dup").addEventListener("click", dupSel);
 document.getElementById("ib-del").addEventListener("click", delSel);
@@ -1166,6 +1238,7 @@ function renderInspector(){
     <div class="field"><label>Height</label><input type="number" id="f-h" value="${it.h}" step="10" min="10"></div>
     <div class="field"><label>Off floor</label><input type="number" id="f-m" value="${it.mount||0}" step="10" min="0"></div>
     <div class="field"><label>Rotation</label><input type="number" id="f-r" value="${it.rot}" step="15"></div>
+    <div class="field"><label>Ignore clashes</label><input type="checkbox" id="f-nc" ${it.noclash?"checked":""}></div>
     <div class="btnrow">
       <button data-rot="-90">↺ 90</button>
       <button data-rot="-15">↺ 15</button>
@@ -1184,6 +1257,10 @@ function renderInspector(){
     renderPlan(); renderChips(); renderClearances(); build3DItems();
   });
   bind("#f-w","w"); bind("#f-d","d"); bind("#f-h","h"); bind("#f-m","mount"); bind("#f-r","rot");
+  el.querySelector("#f-nc").addEventListener("change", e=>{
+    it.noclash = e.target.checked ? 1 : 0;
+    renderPlan(); renderChips(); renderClearances(); queueAutosave();
+  });
   el.querySelectorAll("[data-rot]").forEach(b=>b.addEventListener("click",()=>rotSel(+b.dataset.rot)));
   el.querySelector("#f-dup").addEventListener("click", dupSel);
   el.querySelector("#f-del").addEventListener("click", delSel);
@@ -1371,9 +1448,36 @@ const C3 = {
   pot:0xB08C6A, metal:0x9AA3A8, water:0xCFE3EA, mirror:0xBFD2D8
 };
 
+/* Firefox on some driver setups refuses a context outright — usually with
+   hardware acceleration off, sometimes only when MSAA is asked for. Step
+   down through weaker requests on a fresh canvas each time, since a canvas
+   that has already failed getContext won't hand one over on a retry. */
+function makeRenderer(){
+  const tries = [
+    {antialias:true},
+    {antialias:false},
+    {antialias:false, powerPreference:"low-power"},
+    {antialias:false, powerPreference:"low-power", failIfMajorPerformanceCaveat:false}
+  ];
+  let last = null;
+  for(const opts of tries){
+    const fresh = document.createElement("canvas");
+    fresh.id = "c3d";
+    document.getElementById("c3d").replaceWith(fresh);
+    try{ return new THREE.WebGLRenderer(Object.assign({canvas:fresh}, opts)); }
+    catch(err){ last = err; }
+  }
+  throw last || new Error("no WebGL context");
+}
+
+function no3D(html){
+  const pane = document.getElementById("pane3d");
+  if(pane) pane.innerHTML = `<div class="no3d">${html}</div>`;
+}
+
 function init3D(){
-  const canvas = document.getElementById("c3d");
-  renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+  renderer = makeRenderer();
+  const canvas = renderer.domElement;
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x191D21);
@@ -1407,6 +1511,10 @@ function init3D(){
   scene.add(itemRoot);
 
   attachOrbit(canvas);
+  canvas.addEventListener("webglcontextlost", e=>{
+    e.preventDefault(); running = false;
+    no3D("The 3D view lost its WebGL context. Reload the page to bring it back — the plan is unaffected.");
+  });
   window.addEventListener("resize", resize3D);
   resize3D();
   animate();
@@ -1424,6 +1532,16 @@ function addWallBox(x1,z1,x2,z2,h,yBase){
 function boxMesh(w,h,d,color,opts){
   const mat = new THREE.MeshLambertMaterial(Object.assign({color}, opts||{}));
   return new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+}
+
+/* A box narrowed towards the bottom by factor k. A 4-segment cylinder is a
+   square prism; rotating it 45° puts the flats on the axes, then the scale
+   gives exact w x h x d bounds — so the 3D footprint still matches the 2D. */
+function taperBox(w,h,d,k,color,opts){
+  const geo = new THREE.CylinderGeometry(Math.SQRT1_2, Math.SQRT1_2*k, 1, 4, 1);
+  geo.rotateY(Math.PI/4);
+  geo.scale(w,h,d);
+  return new THREE.Mesh(geo, new THREE.MeshLambertMaterial(Object.assign({color}, opts||{})));
 }
 
 function build3DItems(){
@@ -1448,7 +1566,7 @@ function itemMesh(it){
   const d = DEF[it.t], W=it.w, D=it.d, H=it.h;
   const put=(m,y)=>{m.position.y=y;g.add(m);return m;};
 
-  switch(d.glyph){
+  switch(d.mesh || d.glyph){
     case "bath":{
       put(boxMesh(W,H,D,C3.fixture), H/2);
       const inner = boxMesh(Math.max(40,W-160),60,Math.max(40,D-160),C3.water);
@@ -1458,9 +1576,68 @@ function itemMesh(it){
       break;
     }
     case "wc":{
-      put(boxMesh(W,H*0.75,D*0.75,C3.fixture), H*0.62);
-      const seat = boxMesh(W-40,50,D*0.7,0xEFEFEF);
-      seat.position.set(0,H,10); g.add(seat);
+      // The pan fills W x D. The old body was D*0.75 deep, which at the
+      // default 400 x 540 came out 400 x 405 — square from above, and
+      // nothing like the 2D outline.
+      const seatT = Math.max(40, H*0.12);
+      const bodyH = Math.max(60, H - seatT);
+      const pan = taperBox(W*0.94, bodyH, D*0.98, 0.70, C3.fixture);
+      pan.position.y = bodyH/2; g.add(pan);
+      const seat = boxMesh(W, seatT, D*0.98, 0xF1F1EE);
+      seat.position.y = bodyH + seatT/2; g.add(seat);
+      break;
+    }
+    case "wcfloor":{
+      // close-coupled: bowl at the front, cistern against the wall (-z),
+      // the whole thing inside W x D x H
+      const cisD    = Math.max(120, D*0.28);
+      const panD    = D - cisD;
+      const seatT   = Math.max(35, H*0.055);
+      const seatTop = H*0.53;
+      const panH    = Math.max(80, seatTop - seatT);
+      const zPan    = D/2 - panD/2;
+      const zCis    = -D/2 + cisD/2;
+
+      const ped = taperBox(W*0.58, panH, D*0.90, 0.86, C3.fixture);
+      ped.position.y = panH/2; g.add(ped);
+      const bowl = taperBox(W*0.92, panH*0.62, panD*0.96, 0.66, C3.fixture);
+      bowl.position.set(0, panH*0.69, zPan); g.add(bowl);
+      const seat = boxMesh(W, seatT, panD*0.96, 0xF1F1EE);
+      seat.position.set(0, panH + seatT/2, zPan); g.add(seat);
+      const cisH = Math.max(60, H - seatTop - 24);
+      const cis  = boxMesh(W, cisH, cisD, C3.fixture);
+      cis.position.set(0, seatTop + cisH/2, zCis); g.add(cis);
+      const lid = boxMesh(W, 24, cisD, 0xF1F1EE);
+      lid.position.set(0, seatTop + cisH + 12, zCis); g.add(lid);
+      break;
+    }
+    case "fshelf":{
+      put(boxMesh(W, Math.min(H,60), D, C3.fixture), Math.min(H,60)/2);
+      break;
+    }
+    case "drainround":{
+      const r = Math.min(W,D)/2;
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(r,r,20,24),
+        new THREE.MeshLambertMaterial({color:C3.metal}));
+      ring.position.y = 10; g.add(ring);
+      const hole = new THREE.Mesh(new THREE.CylinderGeometry(r*0.6,r*0.6,26,20),
+        new THREE.MeshLambertMaterial({color:0x2A2F34}));
+      hole.position.y = 12; g.add(hole);
+      break;
+    }
+    case "frame":{
+      // an empty picture frame on the wall: border proud, opening recessed
+      const b = Math.max(35, Math.min(W,H)*0.12);
+      const openD = Math.max(10, D*0.35);
+      const open = boxMesh(Math.max(20,W-b*2), Math.max(20,H-b*2), openD, 0x23282D);
+      open.position.set(0, H/2, -D/2 + openD/2); g.add(open);
+      const bar = (bw,bh,bx,by)=>{
+        const m = boxMesh(bw,bh,D,C3.fixture); m.position.set(bx,by,0); g.add(m);
+      };
+      bar(W, b, 0, H-b/2);
+      bar(W, b, 0, b/2);
+      bar(b, Math.max(0,H-b*2), -W/2+b/2, H/2);
+      bar(b, Math.max(0,H-b*2),  W/2-b/2, H/2);
       break;
     }
     case "vanity":{
@@ -1609,7 +1786,9 @@ function resize3D(){
   camera.updateProjectionMatrix();
 }
 
+let running = true;
 function animate(){
+  if(!running) return;
   requestAnimationFrame(animate);
   const cx = cam.tx, cy = cam.ty, cz = cam.tz;
   camera.position.set(
@@ -1626,7 +1805,11 @@ function animate(){
     const toCam  = new THREE.Vector3(camera.position.x - rc.x, 0, camera.position.z - rc.z).normalize();
     m.visible = toWall.dot(toCam) < 0.42;
   }
-  renderer.render(scene, camera);
+  try{ renderer.render(scene, camera); }
+  catch(err){
+    running = false;
+    no3D("The 3D view stopped: " + esc(err.message) + " The plan is unaffected.");
+  }
 }
 
 /* =====================================================================
@@ -1686,10 +1869,21 @@ if(fromLink){
 renderFiles();
 refresh();
 if(fromLink) loadFromLink(fromLink);
-if(window.THREE){ init3D(); build3DItems(); }
-else{
-  document.getElementById("pane3d").innerHTML =
-    '<div style="margin:auto;color:#8794A0;font-size:14px;padding:24px;text-align:center">3D needs the three.js CDN — check your connection and reload.</div>';
+if(!window.THREE){
+  no3D("3D needs the three.js CDN — check your connection and reload.");
+}else{
+  try{
+    init3D();
+    build3DItems();
+  }catch(err){
+    running = false;
+    no3D(`<b>This browser wouldn't give us a WebGL context</b>, so the 3D view is off.
+           The 2D plan, clearances and sharing all work as normal.
+           <br><br>In Firefox this is nearly always hardware acceleration being disabled:
+           Settings → General → Performance, untick <i>Use recommended performance settings</i>,
+           then tick <i>Use hardware acceleration when available</i> and reload.
+           <br><br><span class="no3d-err">${esc(err.message)}</span>`);
+  }
 }
 </script>
 </body>

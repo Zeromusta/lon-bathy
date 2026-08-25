@@ -87,9 +87,19 @@ Everything is in **millimetres**, origin at the outer corner of the shower reces
 - `BANDS` — one axis-aligned rect per wall, derived from `POLY` + `OUTER`. Both the 2D
   walls and the 3D wall boxes come from this.
 - `CAT` / `DEF` — fixture catalogue: default sizes, heights, `mount` (height off floor),
-  and which 2D glyph to draw.
-- `items[]` — everything placed. `{id, t, n, x, y, w, d, h, rot, mount}`, `x`/`y` are
-  the centre.
+  which 2D `glyph` to draw, and optionally a `mesh` naming a different 3D case. The two
+  WCs share `glyph:"wc"` so their plan outline is identical, and differ only in `mesh`.
+- `items[]` — everything placed. `{id, t, n, x, y, w, d, h, rot, mount, noclash}`,
+  `x`/`y` are the centre. `noclash` exempts an item from clash detection in both
+  directions — for deliberate overlaps like a pot plant sitting in a corner shelf.
+- `inert(i)` — `PHANTOM` type or `noclash` set. The single test `clashes()` uses.
+- `itemsAt(x,y)` / `currentStack()` / `pickBehind()` — the overlap stack under the last
+  click, topmost first, which the **Behind** button and the `B` key walk down. Needed
+  because the mirror cabinet sits directly over the vanity and SVG hit-testing only ever
+  returns the top one.
+- `taperBox(w,h,d,k,…)` — a box narrowed towards the bottom, built from a 4-segment
+  cylinder turned 45°. Exact `w × h × d` bounds, so 3D footprints still match 2D.
+- `makeRenderer()` — WebGL context with a step-down ladder; see the Firefox note below.
 - `store` — localStorage with an in-memory fallback, probed at init.
 - `restore(snap)` — the single validated entry point from saved data into `items`.
 - `compactItems` / `expandItems` / `encodeShare` / `decodeShare` — the share codec.
@@ -132,7 +142,15 @@ Each of these was a real bug, found and fixed:
   DOM in three places. The share link box is set via `.value`, not interpolated, which is
   why it needs no escaping; keep it that way.
 - **Typing in a dimension field must not re-render the inspector**, or focus is lost
-  mid-keystroke. Only the plan, chips, clearances and 3D update.
+  mid-keystroke. Only the plan, chips, clearances and 3D update. The Ignore-clashes
+  checkbox follows the same rule.
+- **3D footprints must match the 2D outline.** The wall-hung WC was built `D*0.75` deep,
+  which at its default 400 × 540 came out 400 × 405 — square from above, and nothing like
+  the plan. If you add a fixture, check its `Box3` against `w` × `d` rather than eyeballing
+  it; the two toilets are the easy regression to re-run.
+- **A `noclash` item is inert on both sides.** Flagging the plant has to stop the *shelf*
+  reporting a clash too, which is why `clashes()` filters `inert` inside the `.some()` as
+  well as at the top.
 - **Link loading hangs off `hashchange` as well as startup.** Pasting a link into a tab
   that already has the planner open changes the hash without reloading, so a startup-only
   hook silently does nothing. `replaceState` on save doesn't fire it, which is what makes
@@ -141,6 +159,27 @@ Each of these was a real bug, found and fixed:
   `write()` alone. `w.close()` returns its own promise, and a corrupt payload rejects it —
   which crashes the tab as an unhandled rejection instead of surfacing as a caught error
   on the read side.
+
+## 3D and Firefox
+
+Mark hit `THREE.WebGLRenderer: Error creating WebGL context` in Firefox, which used to
+throw straight out of the top-level `init3D()` call and leave a dead pane with no
+explanation. Now:
+
+- `makeRenderer()` steps down through weaker context requests — MSAA off, then
+  `low-power`, then `failIfMajorPerformanceCaveat:false` — on a **fresh canvas each time**,
+  because a canvas that has already failed `getContext` will not hand one over on a retry.
+- If every attempt fails, the pane explains that it's almost certainly hardware
+  acceleration being off in Firefox, gives the settings path, and prints the raw error.
+  The 2D plan, clearances and sharing are untouched.
+- `webglcontextlost` and a throwing `renderer.render` both stop the loop and show the same
+  panel, rather than spewing an error every frame.
+
+This was not reproducible here — the step-down ladder is a reasonable guess at a
+recoverable cause, not a verified fix for Mark's machine. If it still fails, the message
+now carries the real error, which is the thing to go on. three.js is pinned at r128
+(2021); a newer build is a plausible next thing to try, but the post-r128 API changes make
+it more than a version bump.
 
 ## Open questions for Mark
 
@@ -151,3 +190,8 @@ Each of these was a real bug, found and fixed:
 - **Wall-hung WC** needs a duct roughly 200 deep that isn't in the default layout. It
   eats into the 810mm gangway. There's a "Duct / boxing" item in the palette to model it.
 - Sizes are bare structure — no allowance for tiling or boarding.
+- **Laundry chute** is 400 wide × 400 high as asked, with a 200 depth guessed for the
+  hatch and a 900 mount. It's `PHANTOM`, on the grounds that it's an opening in the wall
+  rather than something standing in the room — say if it should take up floor space.
+- **Floor WC** is 400 × 700 × 800, the usual close-coupled envelope, and now the default.
+  The wall-hung one is still in the palette.

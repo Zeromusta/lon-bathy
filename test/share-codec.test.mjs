@@ -30,7 +30,7 @@ const {CAT, DEF, compactItems, expandItems, encodeShare, decodeShare} = mod;
 
 /* itemData()'s shape: what the app actually hands the encoder. */
 const norm = i => ({t:i.t, n:i.n, x:Math.round(i.x), y:Math.round(i.y),
-                    w:i.w, d:i.d, h:i.h, rot:i.rot, mount:i.mount||0});
+                    w:i.w, d:i.d, h:i.h, rot:i.rot, mount:i.mount||0, noclash:i.noclash?1:0});
 const mk = (t, x, y, rot, name) => norm({t, n:name||DEF[t].n, x, y,
                                          w:DEF[t].w, d:DEF[t].d, h:DEF[t].h,
                                          rot:rot||0, mount:DEF[t].mount||0});
@@ -49,6 +49,8 @@ const MODIFIED = [
   {...mk("mirror", 100, 900, 90), h:1200, mount:1000},
   {...mk("duct", 1600, 1100, 0), w:900, h:2400},
   {...mk("wc", 1530, 1200, 90), mount:0},
+  {...mk("planttall", 300, 400, 0), noclash:1},
+  {...mk("cornersh", 320, 420, 0), noclash:1, w:260},
 ];
 
 let pass = 0, fail = 0;
@@ -68,6 +70,21 @@ await t("compact/expand round-trips every fixture type, doubled", () => {
 });
 await t("compact/expand round-trips items modified away from the defaults", () => {
   assert.deepStrictEqual(expandItems(compactItems(MODIFIED)), MODIFIED);
+});
+await t("the ignore-clashes flag survives a round trip, and costs nothing when off", async () => {
+  const flagged = await decodeShare(await encodeShare("Flagged", MODIFIED));
+  assert.deepStrictEqual(flagged.items.map(i => i.noclash), [0,0,0,0,1,1]);
+  const clean = compactItems(DEFAULT_LAYOUT);
+  assert.ok(clean.every(t => t.length === 4), "unflagged items should stay bare 4-tuples");
+});
+await t("every catalogue fixture has a 2D glyph, and a 3D case if it names one", () => {
+  const all = CAT.flatMap(g => g.items);
+  assert.ok(all.length >= 26, `only ${all.length} fixtures in the catalogue`);
+  for(const i of all) assert.ok(i.glyph, `${i.t} has no glyph`);
+  for(const t of ["wcfloor","gullyrnd","floatshelf","chute"])
+    assert.ok(DEF[t], `${t} missing from the catalogue`);
+  assert.equal(DEF.wcfloor.glyph, DEF.wc.glyph, "both WCs should share the 2D outline");
+  assert.notEqual(DEF.wcfloor.mesh, undefined, "the floor WC needs its own 3D mesh");
 });
 await t("encode/decode round-trips through compression", async () => {
   const snap = await decodeShare(await encodeShare("Bathroom plan", DEFAULT_LAYOUT));
@@ -142,7 +159,7 @@ await t("unknown fixture types decode to something restore() will filter", async
 /* --- size budget -------------------------------------------------------- */
 await t("links stay well inside a 2000-character budget", async () => {
   const base = "https://zeromusta.github.io/lon-bathy/#".length;
-  const rows = [["Default, 9 items", DEFAULT_LAYOUT], ["Doubled, 44 items", DOUBLED]];
+  const rows = [["Default, 9 items", DEFAULT_LAYOUT], [`Doubled, ${DOUBLED.length} items`, DOUBLED]];
   console.log("");
   for(const [label, list] of rows){
     const json = JSON.stringify({format:FORMAT, version:1, name:"Bathroom plan",
