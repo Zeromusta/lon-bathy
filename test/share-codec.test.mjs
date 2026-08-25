@@ -23,10 +23,12 @@ assert.ok(FORMAT, "couldn't read FORMAT out of index.html");
 const mod = await import("data:text/javascript;base64," + Buffer.from(
   `const FORMAT = ${JSON.stringify(FORMAT)};\n` +
   region("CATALOGUE") + "\n" + region("SHARE-CODEC") + "\n" +
-  `export {CAT, DEF, SHARE_V, SHARE_MAX, compactItems, expandItems, encodeShare, decodeShare};`
+  `export {CAT, DEF, SHARE_V, SHARE_MAX, VIEW_DEF, compactItems, expandItems,
+           viewTuple, viewFromTuple, encodeShare, decodeShare};`
 ).toString("base64"));
 
-const {CAT, DEF, compactItems, expandItems, encodeShare, decodeShare} = mod;
+const {CAT, DEF, VIEW_DEF, compactItems, expandItems, viewTuple, viewFromTuple,
+       encodeShare, decodeShare} = mod;
 
 /* itemData()'s shape: what the app actually hands the encoder. */
 const norm = i => ({t:i.t, n:i.n, x:Math.round(i.x), y:Math.round(i.y),
@@ -108,6 +110,50 @@ await t("an empty layout round-trips", async () => {
 await t("a leading # is tolerated", async () => {
   const snap = await decodeShare("#" + await encodeShare("Hashed", DEFAULT_LAYOUT));
   assert.deepStrictEqual(snap.items, DEFAULT_LAYOUT);
+});
+
+/* --- the 3D camera rides along with the layout -------------------------- */
+const VIEW = {theta:-0.83, phi:0.61, r:3450, tx:1180, ty:520, tz:1900};
+const close = (a, b, tol, what) => assert.ok(Math.abs(a-b) <= tol, `${what}: ${a} vs ${b}`);
+
+await t("a view survives a link, to better than a tenth of a degree", async () => {
+  const snap = await decodeShare(await encodeShare("With a view", DEFAULT_LAYOUT, {view:VIEW}));
+  const back = viewFromTuple(snap.view);
+  close(back.theta, VIEW.theta, 0.001, "theta");
+  close(back.phi,   VIEW.phi,   0.001, "phi");
+  for(const k of ["r","tx","ty","tz"]) assert.equal(back[k], VIEW[k], k);
+  assert.ok(0.001 < 0.0018, "a milliradian is under a tenth of a degree");
+});
+await t("theta wraps rather than growing without bound", () => {
+  // orbiting accumulates theta, so a long session can run to many turns
+  const spun = viewTuple({...VIEW, theta: VIEW.theta + Math.PI*8});
+  assert.deepStrictEqual(spun, viewTuple(VIEW), "eight extra turns should encode identically");
+  assert.ok(Math.abs(spun[0]) <= 3142, `theta out of [-pi,pi]: ${spun[0]}`);
+});
+await t("a link with no view decodes to no view, not a broken one", async () => {
+  const snap = await decodeShare(await encodeShare("No view", DEFAULT_LAYOUT));
+  assert.equal(snap.view, null);
+  assert.equal(viewFromTuple(snap.view), null, "restore() should fall through to the current camera");
+});
+await t("a hostile or broken view is clamped, never passed through", () => {
+  const bad = viewFromTuple([999999, 999999, 1e9, 1e9, 1e9, 1e9]);
+  assert.ok(bad.phi <= Math.PI/2 - 0.02 && bad.phi >= 0.08, `phi ${bad.phi}`);
+  assert.ok(bad.r <= 20000 && bad.r >= 900, `r ${bad.r}`);
+  for(const k of ["tx","ty","tz"]) assert.ok(Math.abs(bad[k]) <= 100000, `${k} ${bad[k]}`);
+
+  const nans = viewFromTuple(["x", null, undefined, NaN, Infinity, -Infinity]);
+  for(const [k,v] of Object.entries(nans))
+    assert.ok(Number.isFinite(v), `${k} came back ${v}`);
+  assert.equal(nans.theta, VIEW_DEF.theta, "unreadable values fall back to the default view");
+
+  for(const junk of [null, undefined, "p1", 42, [], [1,2,3]])
+    assert.equal(viewFromTuple(junk), null, `${JSON.stringify(junk)} should give no view`);
+});
+await t("carrying a view costs very little", async () => {
+  const without = (await encodeShare("x", DEFAULT_LAYOUT)).length;
+  const withIt  = (await encodeShare("x", DEFAULT_LAYOUT, {view:VIEW})).length;
+  assert.ok(withIt - without < 60, `a view added ${withIt - without} characters`);
+  console.log(`\n       view costs ${withIt - without} characters in the payload\n`);
 });
 
 /* --- the uncompressed fallback path ------------------------------------ */

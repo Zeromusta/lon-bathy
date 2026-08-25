@@ -14,6 +14,10 @@ Everything is in millimetres, origin at the outer corner of the shower recess.
 positional tuples, deflated, then base64url'd. A typical plan comes to about 230
 characters; a pathological one with every fixture doubled is still under 700.
 
+The 3D viewing angle goes in too, so a link opens on the view you were looking at. That
+costs 21 characters. The angle is also kept in saved layouts and the autosave, so a reload
+resumes where you left off.
+
 Nothing is uploaded. The fragment never leaves the browser, so anyone opening the link
 reconstructs the plan locally from the link itself. Opening a link doesn't overwrite
 whatever you had going — autosave pauses until you hit **Save**, at which point the

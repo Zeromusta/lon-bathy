@@ -29,8 +29,9 @@ static host. A query string would get logged by every proxy in between and buy n
    only for fields that differ from the catalogue default in `DEF`. Most placed fixtures
    are unmodified, so this is where the bulk of the saving comes from — well before
    compression gets involved.
-2. **Wrap as** `[schemaVersion, name, items]` — no `saved` timestamp, no `room` block;
-   both are re-derivable and the room is fixed.
+2. **Wrap as** `[schemaVersion, name, items, view?]` — no `saved` timestamp, no `room`
+   block; both are re-derivable and the room is fixed. `view` is the 3D camera as six
+   integers (see below) and is optional, so a link made before it existed still decodes.
 3. **`CompressionStream('deflate-raw')`**, then base64url. Both are async, so the button
    handler is `async`. Where `CompressionStream` is missing the payload is marked `p1u.`
    (uncompressed) and the decoder takes the other path.
@@ -61,6 +62,27 @@ overwrite the session they had open. Saving adopts the layout, resumes autosave,
 
 The link is generated on demand only. The address bar is never live-updated as fixtures
 move — that churns the URL and makes the back button useless.
+
+### The camera rides along
+
+The 3D viewing angle is part of the layout — in the link, in saved layouts, in exported
+files and in the autosave, so a reload resumes the view you left and a link opens on the
+angle you were looking at.
+
+`cam` is `{theta, phi, r, tx, ty, tz}`. `viewTuple` stores angles as thousandths of a
+radian and distances as whole mm, giving six small integers: about a tenth of a degree of
+precision, and 21 characters on the payload. `theta` is wrapped to ±π first, because
+orbiting accumulates it without bound and a long session would otherwise encode a camera
+that had been round the houses a dozen times.
+
+`viewFromTuple` clamps every field to the orbit controls' own limits and returns `null`
+for anything it can't read — a camera outside those limits renders an empty pane, which
+just looks like a broken app. `restore()` is where that validation happens, the same
+single door the items go through; `decodeShare` passes the raw tuple straight on.
+
+Camera movement autosaves (debounced) but deliberately does **not** mark the layout dirty
+— `itemsJSON()` stays items-only, so nudging the view doesn't flash "Unsaved changes".
+The same goes for the share link box's freshness check.
 
 ### Decoding is the untrusted path
 
@@ -103,6 +125,8 @@ Everything is in **millimetres**, origin at the outer corner of the shower reces
 - `taperBox(w,h,d,k,…)` — a box narrowed towards the bottom, built from a 4-segment
   cylinder turned 45°. Exact `w × h × d` bounds, so 3D footprints still match 2D.
 - `makeRenderer()` — WebGL context with a step-down ladder; see the Firefox note below.
+- `VIEW_DEF` / `cam` / `viewTuple` / `viewFromTuple` — the 3D camera and its codec. `cam`
+  is spread from `VIEW_DEF` so the starting angle has one definition.
 - `store` — localStorage with an in-memory fallback, probed at init.
 - `restore(snap)` — the single validated entry point from saved data into `items`.
 - `compactItems` / `expandItems` / `encodeShare` / `decodeShare` — the share codec.

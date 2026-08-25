@@ -900,6 +900,7 @@ function snapshot(name){
     name: name || currentName || "Untitled",
     saved: new Date().toISOString(),
     room: {main:R.main, recess:R.recess, ceil:R.ceil, door:R.door},
+    view: viewTuple(cam),
     items: itemData()
   };
 }
@@ -916,6 +917,11 @@ function restore(snap){
     rot:+i.rot||0, mount:+i.mount||0, noclash:i.noclash?1:0
   }));
   sel = null;
+  // The camera is part of the layout, and restore() is the one validated way
+  // in — a link's view goes through viewFromTuple exactly like its items go
+  // through the DEF filter.
+  const view = viewFromTuple(snap.view);
+  if(view) Object.assign(cam, view);
   currentName = snap.name || "Untitled";
   lastSavedJSON = itemsJSON();
   lastSavedAt = "just now";
@@ -1044,6 +1050,33 @@ function expandItems(tuples){
   });
 }
 
+/* The 3D camera travels with the layout. Angles go as thousandths of a
+   radian and distances as whole mm, so a whole view is six small integers —
+   cheap in the link, and deflate likes digits. */
+const VIEW_DEF = {theta:-Math.PI/2 + 0.55, phi:0.92, r:6400, tx:1000, ty:850, tz:1750};
+const wrapPi = a => { const t = (a + Math.PI) % (Math.PI*2); return (t<0 ? t+Math.PI*2 : t) - Math.PI; };
+
+const viewTuple = c => [
+  Math.round(wrapPi(+c.theta||0)*1000), Math.round((+c.phi||0)*1000),
+  Math.round(+c.r||0), Math.round(+c.tx||0), Math.round(+c.ty||0), Math.round(+c.tz||0)
+];
+
+/* A view can arrive from a share link, so none of it is trusted. The limits
+   are the orbit controls' own: a camera outside them renders an empty pane,
+   which just reads as a broken app. */
+function viewFromTuple(t){
+  if(!Array.isArray(t) || t.length < 6) return null;
+  const n = (v,lo,hi,dflt) => { const x = +v; return Number.isFinite(x) ? Math.min(hi,Math.max(lo,x)) : dflt; };
+  return {
+    theta: n(t[0]/1000, -Math.PI*2, Math.PI*2,     VIEW_DEF.theta),
+    phi:   n(t[1]/1000, 0.08, Math.PI/2-0.02,      VIEW_DEF.phi),
+    r:     n(t[2], 900, 20000,                     VIEW_DEF.r),
+    tx:    n(t[3], -100000, 100000,                VIEW_DEF.tx),
+    ty:    n(t[4], -100000, 100000,                VIEW_DEF.ty),
+    tz:    n(t[5], -100000, 100000,                VIEW_DEF.tz)
+  };
+}
+
 const b64u = bytes => {
   let s = "";
   for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000));
@@ -1083,7 +1116,9 @@ async function zipPipe(bytes, stream, cap){
 /* `p1.` compressed, `p1u.` not. The prefix means a later format change is
    detectable rather than silently mis-decoded. */
 async function encodeShare(name, list, opts){
-  const json  = JSON.stringify([SHARE_V, String(name==null?"Untitled":name), compactItems(list)]);
+  const body = [SHARE_V, String(name==null?"Untitled":name), compactItems(list)];
+  if(opts && opts.view) body.push(viewTuple(opts.view));
+  const json  = JSON.stringify(body);
   const bytes = new TextEncoder().encode(json);
   if(!(opts && opts.compress === false) && canZip()){
     try{ return "p1." + b64u(await zipPipe(bytes, new CompressionStream("deflate-raw"))); }
@@ -1117,12 +1152,13 @@ async function decodeShare(payload){
   catch(e){ throw new Error("That link is damaged — the layout didn't read back."); }
   if(!Array.isArray(parsed) || parsed.length < 3) throw new Error("That link doesn't have a layout in it.");
 
-  const [v, name, tuples] = parsed;
+  const [v, name, tuples, view] = parsed;
   if(v !== SHARE_V) throw new Error(`That link is format ${v}; this planner reads format ${SHARE_V}.`);
   return {
     format: FORMAT, version: 1,
     name: (typeof name === "string" && name.trim()) ? name : "Shared layout",
-    items: expandItems(tuples)
+    items: expandItems(tuples),
+    view: view === undefined ? null : view   // raw; restore() is what validates it
   };
 }
 /* ==SHARE-CODEC-END== */
@@ -1382,7 +1418,7 @@ function renderFiles(){
     let copied = false;
     try{
       const forJSON = itemsJSON();
-      const url = shareBase() + "#" + await encodeShare(name, itemData());
+      const url = shareBase() + "#" + await encodeShare(name, itemData(), {view:cam});
       shareUrl = url; shareUrlFor = forJSON;
       try{ await navigator.clipboard.writeText(url); copied = true; }
       catch(err){ copied = false; }
@@ -1451,7 +1487,7 @@ function refresh(keepPanel, rebuildMesh){
    3D
    ===================================================================== */
 let scene, camera, renderer, itemRoot, wallMeshes=[], meshById={};
-const cam = {theta:-Math.PI/2 + 0.55, phi:0.92, r:6400, tx:1000, ty:850, tz:1750};
+const cam = {...VIEW_DEF};
 
 const C3 = {
   floor:0xD9D5CE, wall:0xEFEDE8, wallOut:0xC9C4BC,
@@ -1780,12 +1816,13 @@ function attachOrbit(canvas){
       cam.ty += dy*s;
     }
   });
-  const stop=()=>mode=null;
+  const stop=()=>{ if(mode){ mode=null; queueAutosave(); } };
   canvas.addEventListener("pointerup",stop);
   canvas.addEventListener("pointercancel",stop);
   canvas.addEventListener("wheel",e=>{
     e.preventDefault();
     cam.r = Math.max(900, Math.min(20000, cam.r * (1 + Math.sign(e.deltaY)*0.12)));
+    queueAutosave();          // debounced, so a burst of wheel events collapses
   },{passive:false});
 }
 
