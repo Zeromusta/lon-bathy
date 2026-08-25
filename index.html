@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bathroom plan — 1800 × 2700 + shower recess</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sheet:#ECEEEB;
+  --sheet-2:#E3E6E2;
+  --grid:#D5DAD5;
+  --grid-hi:#C3CAC3;
+  --ink:#23282C;
+  --ink-soft:#5C666D;
+  --shell:#B8443A;
+  --fixture:#2E7A56;
+  --chrome:#191D21;
+  --chrome-2:#22282D;
+  --chrome-3:#2E353B;
+  --chrome-line:#39424A;
+  --on-chrome:#DCE2E6;
+  --on-chrome-dim:#8794A0;
+  --select:#2F80D2;
+  --clash:#F0603A;
+  --glass:#5AA6C4;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Barlow Semi Condensed",system-ui,sans-serif;
+  font-size:15px;
+  color:var(--on-chrome);
+  background:var(--chrome);
+  overflow:hidden;
+}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+
+/* ---------- frame ---------- */
+#app{display:flex;flex-direction:column;height:100vh}
+header{
+  display:flex;align-items:center;gap:18px;
+  padding:0 16px;height:52px;flex:0 0 52px;
+  background:var(--chrome-2);
+  border-bottom:1px solid var(--chrome-line);
+}
+header h1{
+  margin:0;font-size:16px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+}
+header h1 span{color:var(--on-chrome-dim);font-weight:400;letter-spacing:.02em;text-transform:none;margin-left:10px}
+.spacer{flex:1}
+.seg{display:flex;border:1px solid var(--chrome-line);border-radius:5px;overflow:hidden}
+.seg button{
+  background:transparent;border:0;color:var(--on-chrome-dim);
+  padding:6px 14px;letter-spacing:.05em;text-transform:uppercase;font-size:13px;
+}
+.seg button+button{border-left:1px solid var(--chrome-line)}
+.seg button[aria-pressed="true"]{background:var(--chrome-3);color:#fff}
+.ghost{
+  background:transparent;border:1px solid var(--chrome-line);border-radius:5px;
+  padding:6px 12px;color:var(--on-chrome-dim);font-size:13px;letter-spacing:.04em;text-transform:uppercase;
+}
+.ghost:hover{color:#fff;border-color:#55616b}
+
+#main{flex:1;display:flex;min-height:0}
+
+/* ---------- sidebar ---------- */
+aside{
+  width:288px;flex:0 0 288px;background:var(--chrome-2);
+  border-right:1px solid var(--chrome-line);
+  display:flex;flex-direction:column;min-height:0;
+}
+.panel-tabs{display:flex;flex:0 0 auto;border-bottom:1px solid var(--chrome-line)}
+.panel-tabs button{
+  flex:1;background:transparent;border:0;padding:11px 0;
+  color:var(--on-chrome-dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  border-bottom:2px solid transparent;
+}
+.panel-tabs button[aria-pressed="true"]{color:#fff;border-bottom-color:var(--select)}
+.panel-body{flex:1;overflow-y:auto;padding:14px 14px 40px}
+.panel-body::-webkit-scrollbar{width:9px}
+.panel-body::-webkit-scrollbar-thumb{background:var(--chrome-3);border-radius:5px}
+
+h2.grp{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--on-chrome-dim);
+  margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--chrome-line);font-weight:500;
+}
+h2.grp:first-child{margin-top:2px}
+
+.row{
+  display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;
+  padding:7px 8px;border-radius:5px;
+}
+.row:hover{background:var(--chrome-3)}
+.row .nm{font-size:14px;line-height:1.15}
+.row .dims{display:flex;gap:3px;align-items:center;margin-top:4px}
+.row input[type=number]{
+  width:46px;background:var(--chrome);border:1px solid var(--chrome-line);border-radius:3px;
+  padding:2px 4px;font-family:"Roboto Mono",monospace;font-size:11px;color:var(--on-chrome);
+}
+.row input[type=number]:focus{outline:1px solid var(--select);border-color:var(--select)}
+.row .x{color:var(--on-chrome-dim);font-size:11px;font-family:"Roboto Mono",monospace}
+.add{
+  background:var(--chrome-3);border:1px solid var(--chrome-line);border-radius:4px;
+  width:30px;height:30px;font-size:17px;line-height:1;color:var(--on-chrome);
+}
+.add:hover{background:var(--select);border-color:var(--select);color:#fff}
+.swatch{width:3px;border-radius:2px;align-self:stretch;margin-right:2px}
+
+/* inspector */
+.empty{color:var(--on-chrome-dim);font-size:14px;line-height:1.5;padding:8px 2px}
+.field{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:9px 0}
+.field label{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--on-chrome-dim)}
+.field input[type=number]{
+  width:78px;background:var(--chrome);border:1px solid var(--chrome-line);border-radius:4px;
+  padding:5px 7px;font-family:"Roboto Mono",monospace;font-size:13px;text-align:right;
+}
+.btnrow{display:flex;gap:5px;margin:10px 0}
+.btnrow button{
+  flex:1;background:var(--chrome-3);border:1px solid var(--chrome-line);border-radius:4px;
+  padding:7px 0;font-size:13px;font-family:"Roboto Mono",monospace;
+}
+.btnrow button:hover{background:var(--chrome-line)}
+.danger{color:#F09A8C}
+.danger:hover{background:#5A2A22!important;border-color:#7A3A2E!important}
+
+.clr{margin-top:6px;border-top:1px solid var(--chrome-line);padding-top:10px}
+.clr .cl{
+  display:flex;justify-content:space-between;padding:4px 0;
+  font-family:"Roboto Mono",monospace;font-size:12px;
+}
+.clr .cl span:first-child{color:var(--on-chrome-dim);font-family:"Barlow Semi Condensed",sans-serif;font-size:13px}
+.saverow{display:flex;gap:5px;margin:8px 0 6px}
+.saverow input{
+  flex:1;min-width:0;background:var(--chrome);border:1px solid var(--chrome-line);border-radius:4px;
+  padding:6px 8px;font-size:14px;color:var(--on-chrome);
+}
+.saverow input:focus{outline:1px solid var(--select);border-color:var(--select)}
+.savebtn{
+  background:var(--select);border:1px solid var(--select);border-radius:4px;color:#fff;
+  padding:6px 14px;font-size:13px;letter-spacing:.04em;
+}
+.savebtn:hover{filter:brightness(1.12)}
+.savestate{font-size:12px;color:var(--on-chrome-dim);letter-spacing:.04em;margin-bottom:4px}
+.savestate.dirty{color:#E8B77A}
+.fmsg{
+  font-size:13px;line-height:1.45;color:#A8D8BC;background:#1E3529;border:1px solid #2F5540;
+  border-radius:4px;padding:7px 9px;margin:8px 0;
+}
+.fmsg.err{color:#F0B4A6;background:#3A211A;border-color:#5E3226}
+.frow{border:1px solid var(--chrome-line);border-radius:5px;padding:8px 9px;margin-bottom:7px}
+.frow.cur{border-color:var(--select)}
+.fname{font-size:14px;color:var(--on-chrome);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fmeta{font-size:11px;color:var(--on-chrome-dim);font-family:"Roboto Mono",monospace;margin:2px 0 6px}
+.fbtns{display:flex;gap:4px}
+.fbtns button{
+  flex:1;background:var(--chrome-3);border:1px solid var(--chrome-line);border-radius:3px;
+  padding:4px 0;font-size:11px;letter-spacing:.02em;
+}
+.fbtns button:hover{background:var(--chrome-line)}
+.fbtns button.danger{color:#F09A8C}
+.fbtns button.danger:hover{background:#5A2A22;border-color:#7A3A2E}
+#lay-linkbox{
+  width:100%;background:var(--chrome);border:1px solid var(--select);
+  border-radius:4px;color:var(--on-chrome);font-family:"Roboto Mono",monospace;font-size:11px;
+  padding:7px;margin:4px 0;
+}
+.note{
+  font-size:13px;line-height:1.5;color:var(--on-chrome-dim);
+  border-left:2px solid var(--chrome-line);padding-left:10px;margin:14px 0 0;
+}
+.note b{color:var(--on-chrome);font-weight:500}
+
+/* ---------- stage ---------- */
+#stage{flex:1;display:flex;min-width:0;background:var(--chrome)}
+.pane{flex:1;min-width:0;position:relative;display:flex;flex-direction:column}
+.pane+.pane{border-left:1px solid var(--chrome-line)}
+.pane.hidden{display:none}
+.pane-hd{
+  position:absolute;top:10px;left:12px;z-index:3;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);
+  pointer-events:none;
+}
+#pane3d .pane-hd{color:var(--on-chrome-dim)}
+.chips{position:absolute;top:8px;right:12px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.chip{
+  background:rgba(255,255,255,.72);border:1px solid var(--grid-hi);border-radius:4px;
+  padding:3px 9px;font-family:"Roboto Mono",monospace;font-size:11px;color:var(--ink);
+  backdrop-filter:blur(3px);
+}
+.chip b{font-weight:500}
+.chip.bad{background:#FBE3DC;border-color:var(--clash);color:#8C2E1A}
+.chip.good{background:#DFEDE4;border-color:#8FBBA2;color:#1E5A3C}
+
+#plan{flex:1;background:var(--sheet);touch-action:none;display:block;width:100%;height:100%}
+#c3d{flex:1;display:block;width:100%;height:100%}
+.itembar{
+  position:absolute;bottom:8px;right:12px;z-index:4;
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.94);border:1px solid var(--grid-hi);border-radius:6px;
+  padding:5px 6px 5px 11px;box-shadow:0 2px 10px rgba(0,0,0,.10);
+}
+.itembar[hidden]{display:none}
+.itembar .ib-name{
+  color:var(--ink);font-size:13px;max-width:150px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;margin-right:4px;
+}
+.itembar button{
+  background:#fff;border:1px solid var(--grid-hi);border-radius:4px;color:var(--ink);
+  padding:4px 10px;font-size:13px;
+}
+.itembar button:hover{background:#E6EAEE;border-color:#9AA6AE}
+.itembar button.ib-danger{color:#A8331C;border-color:#E3BDB3}
+.itembar button.ib-danger:hover{background:#F0603A;border-color:#F0603A;color:#fff}
+.hint{
+  position:absolute;bottom:9px;left:12px;z-index:3;font-size:12px;color:var(--ink-soft);
+  letter-spacing:.02em;pointer-events:none;
+}
+#pane3d .hint{color:var(--on-chrome-dim)}
+
+/* ---------- svg drawing conventions ---------- */
+.wall{fill:var(--shell);stroke:none}
+.floorfill{fill:#fff;fill-opacity:.55}
+.dimline{stroke:var(--shell);stroke-width:5;fill:none}
+.dimtick{stroke:var(--shell);stroke-width:5}
+.dimtxt{fill:var(--shell);font-family:"Roboto Mono",monospace;font-size:86px;letter-spacing:-.02em}
+.gridline{stroke:var(--grid);stroke-width:3}
+.gridline.hi{stroke:var(--grid-hi);stroke-width:6}
+.item rect.body{fill:#fff;fill-opacity:.88;stroke:var(--fixture);stroke-width:8}
+.item .glyph{stroke:var(--fixture);stroke-width:7;fill:none}
+.item .glyph.f{fill:var(--fixture);fill-opacity:.14;stroke:var(--fixture)}
+.item text.lbl{
+  fill:var(--fixture);font-family:"Barlow Semi Condensed",sans-serif;font-size:72px;
+  text-anchor:middle;dominant-baseline:middle;letter-spacing:.02em;
+  paint-order:stroke;stroke:#fff;stroke-width:16;stroke-linejoin:round;
+}
+.item{cursor:grab}
+.item.dragging{cursor:grabbing}
+.item.sel rect.body{stroke:var(--select);stroke-width:12}
+.item.sel text.lbl{fill:var(--select)}
+.item.sel .glyph{stroke:var(--select)}
+.item.sel .glyph.f{fill:var(--select);stroke:var(--select)}
+.item.clash rect.body{stroke:var(--clash);stroke-width:12;fill:url(#hatch)}
+.item.clash text.lbl{fill:var(--clash)}
+.item.clash .glyph{stroke:var(--clash)}
+.item.wallmt rect.body{stroke-dasharray:34 20;fill-opacity:.45}
+.item.wallmt .glyph.f{fill-opacity:.07}
+.mline{stroke:var(--select);stroke-width:6;stroke-dasharray:22 16}
+.mtick{stroke:var(--select);stroke-width:6}
+.mtxt{
+  fill:#fff;font-family:"Roboto Mono",monospace;font-size:70px;
+  text-anchor:middle;dominant-baseline:middle;
+}
+.mbg{fill:var(--select);rx:6}
+.selbox{fill:none;stroke:var(--select);stroke-width:5;stroke-dasharray:18 14;opacity:.6}
+.doorleaf{fill:var(--shell);fill-opacity:.28;stroke:var(--shell);stroke-width:5}
+.doorarrow{stroke:var(--shell);stroke-width:5;fill:none}
+
+@media (max-width:900px){
+  aside{width:240px;flex-basis:240px}
+  #stage{flex-direction:column}
+  .pane+.pane{border-left:0;border-top:1px solid var(--chrome-line)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Bathroom plan <span>1800 × 2700 · shower recess 1800 × 800</span></h1>
+    <div class="spacer"></div>
+    <div class="seg" id="viewseg">
+      <button data-view="plan" aria-pressed="false">Plan</button>
+      <button data-view="split" aria-pressed="true">Split</button>
+      <button data-view="3d" aria-pressed="false">3D</button>
+    </div>
+    <button class="ghost" id="btn-reset">Reset layout</button>
+  </header>
+
+  <div id="main">
+    <aside>
+      <div class="panel-tabs">
+        <button data-panel="palette" aria-pressed="true">Add</button>
+        <button data-panel="inspect" aria-pressed="false">Selected</button>
+        <button data-panel="files" aria-pressed="false">Files</button>
+      </div>
+      <div class="panel-body" id="panel-palette"></div>
+      <div class="panel-body" id="panel-inspect" style="display:none"></div>
+      <div class="panel-body" id="panel-files" style="display:none"></div>
+    </aside>
+
+    <div id="stage">
+      <div class="pane" id="pane2d">
+        <div class="pane-hd">Plan · 1:20 · mm</div>
+        <div class="chips" id="chips"></div>
+        <svg id="plan"></svg>
+        <div class="itembar" id="itembar" hidden>
+          <span class="ib-name" id="ib-name"></span>
+          <button id="ib-rot" title="Rotate 90° (R)">Rotate</button>
+          <button id="ib-dup">Duplicate</button>
+          <button id="ib-del" class="ib-danger" title="Delete (Del)">Delete</button>
+        </div>
+        <div class="hint">Drag to move · click to select · R rotates · arrows nudge</div>
+      </div>
+      <div class="pane" id="pane3d">
+        <div class="pane-hd">3D</div>
+        <canvas id="c3d"></canvas>
+        <div class="hint">Drag to orbit · scroll to zoom · right-drag or shift-drag to pan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+
+/* =====================================================================
+   ROOM SHELL  (all dimensions in mm, origin at the recess's outer corner)
+   Main room 1800 x 2700. Shower recess 1800 x 800 across the top,
+   offset 200 to the right — so a 200 nib of wall top-left and a 200
+   overhang past the right-hand wall.
+   ===================================================================== */
+const R = {
+  recess:{x1:200, y1:0,   x2:2000, y2:800},
+  main:  {x1:0,   y1:800, x2:1800, y2:3500},
+  ceil:2700,
+  door:{x1:0, x2:800, y:3500, width:800}
+};
+
+// interior outline, clockwise
+const POLY = [
+  [0,800],[200,800],[200,0],[2000,0],[2000,800],[1800,800],[1800,3500],[0,3500]
+];
+
+// interior wall faces: {v:true,x,y1,y2,out} or {v:false,y,x1,x2,out}
+const WALLS = [
+  {v:true,  x:0,    y1:800, y2:3500, out:-1, name:"Left wall"},
+  {v:true,  x:200,  y1:0,   y2:800,  out:-1, name:"Recess left wall"},
+  {v:false, y:800,  x1:0,   x2:200,  out:-1, name:"Top wall"},
+  {v:false, y:0,    x1:200, x2:2000, out:-1, name:"Shower end wall"},
+  {v:true,  x:2000, y1:0,   y2:800,  out:1,  name:"Recess right wall"},
+  {v:false, y:800,  x1:1800,x2:2000, out:1,  name:"Recess return"},
+  {v:true,  x:1800, y1:800, y2:3500, out:1,  name:"Right wall"},
+  {v:false, y:3500, x1:0,   x2:1800, out:1,  name:"Bottom wall"}
+];
+
+const WALL_T = 100;   // drawn wall thickness
+const SNAP   = 70;    // snap distance, mm
+
+/* Offset the outline outward by WALL_T and mitre the corners, so inside
+   corners meet cleanly instead of each wall overshooting the other. */
+const OUTER = (()=>{
+  const N = POLY.length, lines = [];
+  for(let i=0;i<N;i++){
+    const [x1,y1]=POLY[i], [x2,y2]=POLY[(i+1)%N];
+    const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy);
+    lines.push({px:x1 + (dy/L)*WALL_T, py:y1 - (dx/L)*WALL_T, dx, dy});   // outward normal = (dy,-dx)
+  }
+  return POLY.map((_,i)=>{
+    const a=lines[(i-1+N)%N], b=lines[i];
+    const det = -a.dx*b.dy + b.dx*a.dy;
+    const t   = (-(b.px-a.px)*b.dy + b.dx*(b.py-a.py)) / det;
+    return [a.px + a.dx*t, a.py + a.dy*t];
+  });
+})();
+
+/* one axis-aligned band per wall, spanning inner face to mitred outer corner */
+const BANDS = POLY.map((p,i)=>{
+  const q=POLY[(i+1)%POLY.length], a=OUTER[i], b=OUTER[(i+1)%OUTER.length];
+  const xs=[p[0],q[0],a[0],b[0]], ys=[p[1],q[1],a[1],b[1]];
+  return {x1:Math.min(...xs), x2:Math.max(...xs), y1:Math.min(...ys), y2:Math.max(...ys)};
+});
+const isDoorWall = b => b.y1===R.door.y && b.x1 < R.door.x2;
+
+/* =====================================================================
+   CATALOGUE
+   w = along its own local X, d = along its own local Y, h = height
+   mount = height off the floor (wall-hung things)
+   ===================================================================== */
+/* ==CATALOGUE-START== */
+const CAT = [
+ {g:"Sanitaryware", items:[
+  {t:"bath",      n:"Bath",             w:1500,d:750, h:550,  glyph:"bath"},
+  {t:"wc",        n:"WC (wall hung)",   w:400, d:540, h:400,  mount:400, glyph:"wc"},
+  {t:"duct",      n:"Duct / boxing",    w:1200,d:200, h:2700, glyph:"solid"},
+  {t:"vanity",    n:"Vanity, 1 basin",  w:1200,d:450, h:850,  glyph:"vanity"},
+  {t:"basin",     n:"Basin only",       w:550, d:400, h:200,  mount:800, glyph:"basin"},
+  {t:"glass",     n:"Shower glass",     w:800, d:20,  h:2000, glyph:"glass"},
+  {t:"head",      n:"Shower head",      w:250, d:120, h:120,  mount:2050, glyph:"head"},
+  {t:"gully",     n:"Linear drain",     w:800, d:80,  h:10,   glyph:"drain"}
+ ]},
+ {g:"Mirrors & storage", items:[
+  {t:"mirror",    n:"Mirror",           w:800, d:30,  h:900,  mount:1050, glyph:"mirror"},
+  {t:"mircab",    n:"Mirror cabinet",   w:800, d:150, h:700,  mount:1150, glyph:"mirror"},
+  {t:"cornersh",  n:"Corner shelf",     w:200, d:200, h:1200, glyph:"shelf"},
+  {t:"shelf",     n:"Open shelf",       w:600, d:150, h:900,  mount:1200, glyph:"shelf"},
+  {t:"cab",       n:"Tall cupboard",    w:400, d:350, h:1800, glyph:"solid"},
+  {t:"niche",     n:"Recessed niche",   w:400, d:100, h:600,  mount:1100, glyph:"shelf"}
+ ]},
+ {g:"Comfort & extras", items:[
+  {t:"rail",      n:"Towel rail",       w:600, d:110, h:900,  mount:900,  glyph:"rail"},
+  {t:"radrail",   n:"Heated rail",      w:500, d:120, h:1200, mount:400,  glyph:"rail"},
+  {t:"hook",      n:"Towel hook",       w:120, d:80,  h:80,   mount:1600, glyph:"solid"},
+  {t:"planttall", n:"Pot plant, tall",  w:400, d:400, h:1500, glyph:"plant"},
+  {t:"plantshort",n:"Pot plant, short", w:300, d:300, h:600,  glyph:"plant"},
+  {t:"stool",     n:"Stool",            w:350, d:350, h:450,  glyph:"solid"},
+  {t:"basket",    n:"Laundry basket",   w:400, d:400, h:600,  glyph:"solid"},
+  {t:"bin",       n:"Bin",              w:250, d:250, h:400,  glyph:"solid"}
+ ]}
+];
+const DEF = {};
+CAT.forEach(g=>g.items.forEach(i=>DEF[i.t]=i));
+/* ==CATALOGUE-END== */
+
+/* =====================================================================
+   DEFAULT LAYOUT — my reading of the sketch
+   ===================================================================== */
+function startingLayout(){
+  return [
+    mk("glass", 1400, 800,   0,  "Shower glass"),
+    mk("head",  1875, 400,   0,  "Shower head"),
+    mk("gully", 1400, 120,   0,  "Linear drain"),
+    mk("vanity", 225, 1800, 270, "Vanity"),
+    mk("mircab",  75, 1800, 270, "Mirror cabinet"),
+    mk("wc",    1530, 1200, 90,  "WC"),
+    mk("bath",  1425, 2750, 90,  "Bath"),
+    mk("rail",    55, 2900, 90,  "Towel rail"),
+    mk("planttall", 1600, 1750, 0, "Pot plant, tall")
+  ];
+}
+let uid = 1;
+function mk(t, cx, cy, rot, name){
+  const d = DEF[t];
+  return {id:uid++, t, n:name||d.n, x:cx, y:cy, w:d.w, d:d.d, h:d.h, rot:rot||0, mount:d.mount||0};
+}
+
+let items = startingLayout();
+let sel = null;
+
+/* =====================================================================
+   GEOMETRY HELPERS
+   ===================================================================== */
+const rad = deg => deg*Math.PI/180;
+
+function corners(it){
+  const c = Math.cos(rad(it.rot)), s = Math.sin(rad(it.rot));
+  const hw = it.w/2, hd = it.d/2;
+  return [[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(([px,py])=>[
+    it.x + px*c - py*s,
+    it.y + px*s + py*c
+  ]);
+}
+function aabb(it){
+  const c = corners(it);
+  return {
+    x1:Math.min(...c.map(p=>p[0])), x2:Math.max(...c.map(p=>p[0])),
+    y1:Math.min(...c.map(p=>p[1])), y2:Math.max(...c.map(p=>p[1]))
+  };
+}
+const ov = (a1,a2,b1,b2)=>Math.min(a2,b2)-Math.max(a1,b1) > 1;
+
+function inPoly(px,py){
+  let ins=false;
+  for(let i=0,j=POLY.length-1;i<POLY.length;j=i++){
+    const [xi,yi]=POLY[i],[xj,yj]=POLY[j];
+    if(((yi>py)!==(yj>py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi)) ins=!ins;
+  }
+  return ins;
+}
+function outsideRoom(it){
+  return corners(it).some(([x,y])=>{
+    const dx = it.x-x, dy = it.y-y, L = Math.hypot(dx,dy)||1;
+    return !inPoly(x + dx/L*2, y + dy/L*2);
+  });
+}
+
+/* separating-axis test for two rotated rectangles */
+function overlaps(a,b){
+  const A=corners(a), B=corners(b);
+  for(const poly of [A,B]){
+    for(let i=0;i<4;i++){
+      const [x1,y1]=poly[i],[x2,y2]=poly[(i+1)%4];
+      const nx=-(y2-y1), ny=(x2-x1);
+      const len=Math.hypot(nx,ny)||1;
+      const ax=nx/len, ay=ny/len;
+      let aMin=Infinity,aMax=-Infinity,bMin=Infinity,bMax=-Infinity;
+      for(const [x,y] of A){const p=x*ax+y*ay;aMin=Math.min(aMin,p);aMax=Math.max(aMax,p);}
+      for(const [x,y] of B){const p=x*ax+y*ay;bMin=Math.min(bMin,p);bMax=Math.max(bMax,p);}
+      if(aMax < bMin + 2 || bMax < aMin + 2) return false;
+    }
+  }
+  return true;
+}
+
+/* recessed or in-the-floor things never clash with anything */
+const PHANTOM = new Set(["mirror","niche","head","gully","hook"]);
+const vTop = i => (i.mount||0) + i.h;
+const vOv = (a,b) => Math.min(vTop(a),vTop(b)) - Math.max(a.mount||0, b.mount||0) > 5;
+function clashes(it){
+  if(PHANTOM.has(it.t)) return false;
+  if(outsideRoom(it)) return true;
+  return items.some(o => o.id!==it.id && !PHANTOM.has(o.t) && vOv(it,o) && overlaps(it,o));
+}
+
+/* nearest blocker in each direction, from the item's bounding box */
+function gaps(it){
+  const A = aabb(it);
+  const out = {};
+  const others = items.filter(o=>o.id!==it.id && !PHANTOM.has(o.t)).map(o=>({b:aabb(o),n:o.n}));
+  const dirs = [
+    ["left",  (b)=>ov(b.y1,b.y2,A.y1,A.y2) && b.x2<=A.x1+2, (b)=>A.x1-b.x2, (w)=>w.v && w.x<=A.x1+2 && ov(w.y1,w.y2,A.y1,A.y2), (w)=>A.x1-w.x],
+    ["right", (b)=>ov(b.y1,b.y2,A.y1,A.y2) && b.x1>=A.x2-2, (b)=>b.x1-A.x2, (w)=>w.v && w.x>=A.x2-2 && ov(w.y1,w.y2,A.y1,A.y2), (w)=>w.x-A.x2],
+    ["up",    (b)=>ov(b.x1,b.x2,A.x1,A.x2) && b.y2<=A.y1+2, (b)=>A.y1-b.y2, (w)=>!w.v && w.y<=A.y1+2 && ov(w.x1,w.x2,A.x1,A.x2), (w)=>A.y1-w.y],
+    ["down",  (b)=>ov(b.x1,b.x2,A.x1,A.x2) && b.y1>=A.y2-2, (b)=>b.y1-A.y2, (w)=>!w.v && w.y>=A.y2-2 && ov(w.x1,w.x2,A.x1,A.x2), (w)=>w.y-A.y2]
+  ];
+  for(const [key, hitB, distB, hitW, distW] of dirs){
+    let best=Infinity, who="";
+    for(const o of others) if(hitB(o.b)){const d=distB(o.b); if(d<best){best=d;who=o.n;}}
+    for(const w of WALLS)  if(hitW(w))   {const d=distW(w);  if(d<best && d>=-2){best=d;who=w.name;}}
+    out[key] = best===Infinity ? null : {d:Math.round(best), who};
+  }
+  return {A, ...out};
+}
+
+/* snap an item's bounding box to nearby wall faces */
+function snap(it){
+  const A = aabb(it);
+  let dx=0, dy=0, bx=SNAP, by=SNAP;
+  for(const w of WALLS){
+    if(w.v){
+      if(!ov(w.y1,w.y2,A.y1,A.y2)) continue;
+      for(const edge of [A.x1,A.x2]){
+        const diff = w.x-edge;
+        if(Math.abs(diff)<bx){ bx=Math.abs(diff); dx=diff; }
+      }
+    }else{
+      if(!ov(w.x1,w.x2,A.x1,A.x2)) continue;
+      for(const edge of [A.y1,A.y2]){
+        const diff = w.y-edge;
+        if(Math.abs(diff)<by){ by=Math.abs(diff); dy=diff; }
+      }
+    }
+  }
+  it.x += dx; it.y += dy;
+}
+
+/* =====================================================================
+   PLAN (SVG)
+   ===================================================================== */
+const PAD = 700;
+const VB = {x:-PAD, y:-PAD, w:2000+PAD*2, h:3500+PAD*2};
+const svg = document.getElementById("plan");
+svg.setAttribute("viewBox", `${VB.x} ${VB.y} ${VB.w} ${VB.h}`);
+svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+
+function bandRect(b){
+  const x = isDoorWall(b) ? R.door.x2 : b.x1;      // leave the sliding-door opening clear
+  return `<rect class="wall" x="${x}" y="${b.y1}" width="${b.x2-x}" height="${b.y2-b.y1}"/>`;
+}
+
+function gridSvg(){
+  let s="";
+  for(let x=0;x<=2000;x+=100) s+=`<line class="gridline${x%500?"":" hi"}" x1="${x}" y1="0" x2="${x}" y2="3500"/>`;
+  for(let y=0;y<=3500;y+=100) s+=`<line class="gridline${y%500?"":" hi"}" x1="0" y1="${y}" x2="2000" y2="${y}"/>`;
+  return `<g clip-path="url(#room)">${s}</g>`;
+}
+
+function dim(x1,y1,x2,y2,txt,off){
+  const vert = x1===x2;
+  const ox = vert?off:0, oy = vert?0:off;
+  const mx = (x1+x2)/2+ox, my=(y1+y2)/2+oy;
+  const rot = vert ? `transform="rotate(-90 ${mx} ${my})"` : "";
+  return `
+   <line class="dimline" x1="${x1+ox}" y1="${y1+oy}" x2="${x2+ox}" y2="${y2+oy}"/>
+   <line class="dimtick" x1="${x1+ox-(vert?28:0)}" y1="${y1+oy-(vert?0:28)}" x2="${x1+ox+(vert?28:0)}" y2="${y1+oy+(vert?0:28)}"/>
+   <line class="dimtick" x1="${x2+ox-(vert?28:0)}" y1="${y2+oy-(vert?0:28)}" x2="${x2+ox+(vert?28:0)}" y2="${y2+oy+(vert?0:28)}"/>
+   <text class="dimtxt" x="${mx}" y="${my-24}" text-anchor="middle" ${rot}>${txt}</text>`;
+}
+
+function shellSvg(){
+  const d = R.door;
+  return `
+  <defs>
+    <clipPath id="room"><polygon points="${POLY.map(p=>p.join(",")).join(" ")}"/></clipPath>
+    <pattern id="hatch" width="34" height="34" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <rect width="34" height="34" fill="#fff" fill-opacity=".8"/>
+      <line x1="0" y1="0" x2="0" y2="34" stroke="var(--clash)" stroke-width="8" stroke-opacity=".5"/>
+    </pattern>
+  </defs>
+  <polygon class="floorfill" points="${POLY.map(p=>p.join(",")).join(" ")}"/>
+  ${gridSvg()}
+  ${BANDS.map(bandRect).join("")}
+  <rect class="doorleaf" x="${d.x2-20}" y="${3500+WALL_T+14}" width="${d.width}" height="46"/>
+  <path class="doorarrow" d="M ${d.x1+120} ${3500+WALL_T+90} H ${d.x1+560} M ${d.x1+470} ${3500+WALL_T+58} l 90 32 l -90 32"/>
+  <text class="dimtxt" x="${(d.x1+d.x2)/2}" y="${3500+WALL_T+250}" text-anchor="middle" font-size="74">SLIDING 800</text>
+
+  ${dim(200,0,2000,0,"1800",-150)}
+  ${dim(2000,0,2000,800,"800",180)}
+  ${dim(0,800,0,3500,"2700",-170)}
+  ${dim(1800,800,1800,3500,"2700",470)}
+  ${dim(0,3500,1800,3500,"1800",530)}
+  ${dim(0,800,200,800,"200",190)}
+  ${dim(1800,800,2000,800,"200",-250)}
+  `;
+}
+
+const GLYPH = {
+  bath:(w,d)=>`<rect class="glyph" x="${-w/2+70}" y="${-d/2+70}" width="${w-140}" height="${d-140}" rx="90"/>
+               <circle class="glyph f" cx="${-w/2+190}" cy="${-d/2+90}" r="34"/>`,
+  wc:(w,d)=>`<rect class="glyph f" x="${-w/2+30}" y="${-d/2}" width="${w-60}" height="150"/>
+             <ellipse class="glyph" cx="0" cy="${-d/2+340}" rx="${w/2-55}" ry="185"/>`,
+  vanity:(w,d)=>`<rect class="glyph" x="${-w/2+40}" y="${-d/2+40}" width="${w-80}" height="${d-80}"/>
+                 <ellipse class="glyph f" cx="0" cy="20" rx="230" ry="150"/>
+                 <circle class="glyph" cx="0" cy="${-d/2+95}" r="26"/>`,
+  basin:(w,d)=>`<ellipse class="glyph f" cx="0" cy="20" rx="${w/2-45}" ry="${d/2-55}"/>
+                <circle class="glyph" cx="0" cy="${-d/2+70}" r="26"/>`,
+  glass:(w)=>`<line class="glyph" x1="${-w/2}" y1="0" x2="${w/2}" y2="0" stroke-width="36" stroke="var(--glass)"/>
+              <circle class="glyph f" cx="${-w/2+30}" cy="0" r="34"/>`,
+  head:(w,d)=>`<circle class="glyph f" cx="0" cy="0" r="${Math.min(w,d)/2}"/>
+               <path class="glyph" d="M ${-w/2-90} -60 h -60 M ${-w/2-90} 0 h -80 M ${-w/2-90} 60 h -60"/>`,
+  drain:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}" rx="14"/>`,
+  mirror:(w,d)=>`<rect class="glyph f" x="${-w/2}" y="${-d/2}" width="${w}" height="${Math.max(d,34)}"/>`,
+  shelf:(w,d)=>`<rect class="glyph" x="${-w/2}" y="${-d/2}" width="${w}" height="${d}"/>
+                <line class="glyph" x1="${-w/2}" y1="${-d/2}" x2="${w/2}" y2="${d/2}"/>`,
+  rail:(w,d)=>`<line class="glyph" x1="${-w/2+40}" y1="0" x2="${w/2-40}" y2="0" stroke-width="22"/>
+               <line class="glyph" x1="${-w/2+40}" y1="${-d/2}" x2="${-w/2+40}" y2="${d/2}"/>
+               <line class="glyph" x1="${w/2-40}" y1="${-d/2}" x2="${w/2-40}" y2="${d/2}"/>`,
+  plant:(w,d)=>`<circle class="glyph f" cx="0" cy="0" r="${Math.min(w,d)/2-20}"/>
+                <path class="glyph" d="M 0 ${-d/2+50} V ${d/2-50} M ${-w/2+50} 0 H ${w/2-50}"/>`,
+  solid:(w,d)=>`<line class="glyph" x1="${-w/2}" y1="${-d/2}" x2="${w/2}" y2="${d/2}" stroke-opacity=".45"/>`
+};
+
+function itemSvg(it){
+  const d = DEF[it.t];
+  const cls = ["item"];
+  if(sel===it.id) cls.push("sel");
+  if(clashes(it)) cls.push("clash");
+  if(it.mount) cls.push("wallmt");
+  const g = (GLYPH[d.glyph]||GLYPH.solid)(it.w, it.d);
+  const showLbl = it.w > it.n.length*40 && it.d > 250;
+  return `<g class="${cls.join(" ")}" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${it.rot})">
+    <rect class="body" x="${-it.w/2}" y="${-it.d/2}" width="${it.w}" height="${it.d}"/>
+    ${g}
+    ${showLbl?`<text class="lbl" transform="rotate(${-it.rot})">${it.n}</text>`:""}
+  </g>`;
+}
+
+function measureSvg(){
+  const it = items.find(i=>i.id===sel);
+  if(!it) return "";
+  const gp = gaps(it), A = gp.A;
+  let s = `<rect class="selbox" x="${A.x1}" y="${A.y1}" width="${A.x2-A.x1}" height="${A.y2-A.y1}"/>`;
+  const cx=(A.x1+A.x2)/2, cy=(A.y1+A.y2)/2;
+  const lines = [
+    ["left",  A.x1, cy, -1, 0],
+    ["right", A.x2, cy,  1, 0],
+    ["up",    cx, A.y1,  0,-1],
+    ["down",  cx, A.y2,  0, 1]
+  ];
+  for(const [k,sx,sy,dx,dy] of lines){
+    const g = gp[k];
+    if(!g || g.d<=1) continue;
+    const ex = sx+dx*g.d, ey = sy+dy*g.d;
+    const mx = (sx+ex)/2, my=(sy+ey)/2;
+    const label = g.d;
+    const wpx = String(label).length*44+56;
+    s += `<line class="mline" x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}"/>
+      <line class="mtick" x1="${sx-(dx?0:26)}" y1="${sy-(dy?0:26)}" x2="${sx+(dx?0:26)}" y2="${sy+(dy?0:26)}"/>
+      <line class="mtick" x1="${ex-(dx?0:26)}" y1="${ey-(dy?0:26)}" x2="${ex+(dx?0:26)}" y2="${ey+(dy?0:26)}"/>
+      <rect class="mbg" x="${mx-wpx/2}" y="${my-52}" width="${wpx}" height="104"/>
+      <text class="mtxt" x="${mx}" y="${my+4}">${label}</text>`;
+  }
+  return s;
+}
+
+function renderPlan(){
+  const order = items.slice().sort((a,b)=>(a.mount||0)===(b.mount||0)?0:(a.mount||0)>(b.mount||0)?1:-1);
+  const zOrder = order.slice().sort((a,b)=>((b.mount||0)?1:0)-((a.mount||0)?1:0));
+  svg.innerHTML = shellSvg()
+    + `<g id="items">${zOrder.map(itemSvg).join("")}</g>`
+    + `<g id="measures">${measureSvg()}</g>`;
+}
+
+/* ---------- chips ---------- */
+function showerOpening(){
+  const g = items.find(i=>i.t==="glass");
+  if(!g) return null;
+  const A = aabb(g);
+  if(A.y1 > 1000) return null;               // panel isn't on the recess line
+  return Math.round(Math.max(0, A.x1 - 200));
+}
+function renderChips(){
+  const area = ((1800*2700)+(1800*800))/1e6;
+  const op = showerOpening();
+  const bad = items.filter(clashes).length;
+  let s = `<div class="chip">Floor <b>${area.toFixed(2)} m²</b></div>`;
+  if(op!==null) s += `<div class="chip ${op>=800?"good":"bad"}">Shower opening <b>${op}</b></div>`;
+  s += bad
+    ? `<div class="chip bad">${bad} clash${bad>1?"es":""}</div>`
+    : `<div class="chip good">No clashes</div>`;
+  document.getElementById("chips").innerHTML = s;
+}
+
+/* =====================================================================
+   INTERACTION
+   ===================================================================== */
+let drag = null;
+function svgPt(evt){
+  const p = svg.createSVGPoint();
+  p.x = evt.clientX; p.y = evt.clientY;
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+svg.addEventListener("pointerdown", e=>{
+  const g = e.target.closest(".item");
+  if(!g){ sel=null; refresh(); return; }
+  const id = +g.dataset.id;
+  const it = items.find(i=>i.id===id);
+  sel = id;
+  setPanel("inspect");
+  const p = svgPt(e);
+  drag = {id, ox:p.x-it.x, oy:p.y-it.y, moved:false};
+  svg.style.cursor = "grabbing";
+  svg.setPointerCapture(e.pointerId);
+  refresh();
+});
+
+svg.addEventListener("pointermove", e=>{
+  if(!drag) return;
+  const it = items.find(i=>i.id===drag.id);
+  const p = svgPt(e);
+  it.x = Math.round(p.x-drag.ox);
+  it.y = Math.round(p.y-drag.oy);
+  drag.moved = true;
+  liveUpdate(it);
+});
+
+svg.addEventListener("pointerup", e=>{
+  if(!drag) return;
+  const it = items.find(i=>i.id===drag.id);
+  if(drag.moved){ snap(it); it.x=Math.round(it.x); it.y=Math.round(it.y); }
+  drag = null;
+  svg.style.cursor = "";
+  refresh();
+});
+svg.addEventListener("pointercancel", ()=>{drag=null;svg.style.cursor="";refresh();});
+
+function liveUpdate(it){
+  const g = svg.querySelector(`.item[data-id="${it.id}"]`);
+  if(g){
+    g.setAttribute("transform",`translate(${it.x} ${it.y}) rotate(${it.rot})`);
+    g.classList.toggle("clash", clashes(it));
+  }
+  document.getElementById("measures").innerHTML = measureSvg();
+  renderChips();
+  move3D(it);
+  if(panel==="inspect") renderClearances();
+}
+
+document.addEventListener("keydown", e=>{
+  if(/input|select|textarea/i.test(e.target.tagName)) return;
+  const it = items.find(i=>i.id===sel);
+  if(!it) return;
+  const step = e.shiftKey?1:10;
+  const map = {ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]};
+  if(map[e.key]){ it.x+=map[e.key][0]; it.y+=map[e.key][1]; refresh(); e.preventDefault(); }
+  else if(e.key==="r"||e.key==="R"){ it.rot=(it.rot+(e.shiftKey?-90:90)+360)%360; refresh(); }
+  else if(e.key==="Delete"||e.key==="Backspace"){ delSel(); e.preventDefault(); }
+  else if(e.key==="Escape"){ sel=null; refresh(); }
+});
+
+/* =====================================================================
+   SAVED LAYOUTS
+   localStorage where it's allowed; in-memory otherwise, so a sandboxed
+   preview still runs rather than throwing on first access.
+   ===================================================================== */
+const STORE_KEY = "bathroomPlanner.v1";
+const FORMAT = "bathroom-planner";
+
+const store = (()=>{
+  let backed = false, mem = {layouts:{}, auto:null};
+  try{
+    const probe = "__probe" + Math.random();
+    window.localStorage.setItem(probe, "1");
+    window.localStorage.removeItem(probe);
+    backed = true;
+  }catch(e){ backed = false; }
+  return {
+    get backed(){ return backed; },
+    read(){
+      if(!backed) return mem;
+      try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {layouts:{}, auto:null}; }
+      catch(e){ return {layouts:{}, auto:null}; }
+    },
+    write(data){
+      if(!backed){ mem = data; return true; }
+      try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); return true; }
+      catch(e){ return false; }          // quota, private mode, etc.
+    }
+  };
+})();
+
+let currentName = "Bathroom plan";
+let currentId   = null;
+let lastSavedJSON = null;
+let lastSavedAt = null;
+let fileMsg = null, fileMsgErr = false;
+
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "layout";
+const itemData = () => items.map(i=>({t:i.t, n:i.n, x:Math.round(i.x), y:Math.round(i.y),
+                                      w:i.w, d:i.d, h:i.h, rot:i.rot, mount:i.mount||0}));
+const itemsJSON = () => JSON.stringify(itemData());
+
+function snapshot(name){
+  return {
+    format:FORMAT, version:1,
+    name: name || currentName || "Untitled",
+    saved: new Date().toISOString(),
+    room: {main:R.main, recess:R.recess, ceil:R.ceil, door:R.door},
+    items: itemData()
+  };
+}
+
+function restore(snap){
+  if(!snap || typeof snap!=="object" || !Array.isArray(snap.items))
+    throw new Error("That file isn't a bathroom plan.");
+  const known = snap.items.filter(i => DEF[i.t]);
+  const skipped = snap.items.length - known.length;
+  items = known.map(i=>({
+    id:uid++, t:i.t, n:i.n || DEF[i.t].n,
+    x:+i.x||0, y:+i.y||0,
+    w:+i.w || DEF[i.t].w, d:+i.d || DEF[i.t].d, h:+i.h || DEF[i.t].h,
+    rot:+i.rot||0, mount:+i.mount||0
+  }));
+  sel = null;
+  currentName = snap.name || "Untitled";
+  lastSavedJSON = itemsJSON();
+  lastSavedAt = "just now";
+  const notes = [];
+  if(skipped) notes.push(`${skipped} unknown item${skipped>1?"s":""} skipped`);
+  const rm = snap.room && snap.room.main;
+  if(rm && (rm.x2-rm.x1 !== R.main.x2-R.main.x1 || rm.y2-rm.y1 !== R.main.y2-R.main.y1))
+    notes.push("saved for a different room size — positions kept as-is");
+  return notes;
+}
+
+const layoutList = () => {
+  const d = store.read();
+  return Object.entries(d.layouts||{})
+    .map(([id,v])=>({id, ...v}))
+    .sort((a,b)=>String(b.saved).localeCompare(String(a.saved)));
+};
+
+function persist(mutate){
+  const d = store.read();
+  d.layouts = d.layouts || {};
+  mutate(d);
+  if(!store.write(d)){ fileMsg = "Couldn't write to storage — it may be full."; fileMsgErr = true; return false; }
+  return true;
+}
+
+function saveCurrent(){
+  const name = (document.getElementById("lay-name").value || "").trim() || "Untitled";
+  currentName = name;
+  const id = currentId || ("L" + Date.now().toString(36));
+  if(persist(d => { d.layouts[id] = snapshot(name); })){
+    currentId = id;
+    lastSavedJSON = itemsJSON();
+    lastSavedAt = "just now";
+    fileMsg = `Saved "${name}".`; fileMsgErr = false;
+    // They have decided to keep it: resume autosave, and drop the link from
+    // the address bar so a reload shows this layout rather than the link's.
+    if(autosaveOff){
+      autosaveOff = false;
+      if(location.hash) history.replaceState(null, "", shareBase());
+    }
+    queueAutosave();   // so a reload right after saving shows this, not the session before it
+  }
+  renderFiles();
+}
+
+let autoT = null;
+let autosaveOff = false;    // held off while showing a layout that arrived by link
+function queueAutosave(){
+  clearTimeout(autoT);
+  if(autosaveOff) return;
+  autoT = setTimeout(()=>{ persist(d => { d.auto = snapshot(currentName); }); }, 700);
+}
+
+function fmtDate(iso){
+  const dt = new Date(iso);
+  if(isNaN(dt)) return "";
+  return dt.toLocaleDateString(undefined,{day:"numeric",month:"short"}) + " " +
+         dt.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+}
+
+function downloadJSON(obj, filename){
+  try{
+    const blob = new Blob([JSON.stringify(obj,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* =====================================================================
+   SHARE LINKS
+   The whole layout, compacted and deflated, lives in the hash fragment.
+   The fragment never reaches the server and has no length limit, which
+   is what lets this work on a static host with nothing behind it.
+   ==SHARE-CODEC-START==
+   ===================================================================== */
+const SHARE_V    = 1;
+const SHARE_MAX  = 8000;    // encoded payload chars we'll even look at
+const SHARE_CAP  = 200000;  // inflated bytes — stops a deflate bomb
+const SHARE_ITEMS = 400;    // items we'll accept out of one link
+
+/* One positional tuple per item, with a trailing object only for the
+   fields that differ from the catalogue default. Most placed fixtures are
+   untouched, so that object is usually absent — which is where the bulk
+   of the saving comes from, well before compression gets involved. */
+function compactItems(list){
+  return list.map(i=>{
+    const d = DEF[i.t] || {};
+    const tup = [i.t, Math.round(+i.x||0), Math.round(+i.y||0), +i.rot||0];
+    const extra = {};
+    if((i.n||"")      !== (d.n||""))      extra.n     = i.n;
+    if((+i.w||0)      !== (+d.w||0))      extra.w     = +i.w;
+    if((+i.d||0)      !== (+d.d||0))      extra.d     = +i.d;
+    if((+i.h||0)      !== (+d.h||0))      extra.h     = +i.h;
+    if((+i.mount||0)  !== (+d.mount||0))  extra.mount = +i.mount||0;
+    if(Object.keys(extra).length) tup.push(extra);
+    return tup;
+  });
+}
+
+function expandItems(tuples){
+  if(!Array.isArray(tuples)) throw new Error("That link doesn't have a layout in it.");
+  if(tuples.length > SHARE_ITEMS) throw new Error("That link claims more fixtures than a bathroom could hold.");
+  return tuples.map(t=>{
+    if(!Array.isArray(t) || t.length < 4)
+      throw new Error("That link is damaged — one of the fixtures didn't read back.");
+    const [ty, x, y, rot, extra] = t;
+    const d = DEF[ty] || {};
+    const e = (extra && typeof extra === "object" && !Array.isArray(extra)) ? extra : {};
+    return {
+      t: ty,
+      n: "n" in e ? String(e.n) : (d.n || String(ty)),
+      x: +x||0, y: +y||0,
+      w: "w" in e ? +e.w : +d.w,
+      d: "d" in e ? +e.d : +d.d,
+      h: "h" in e ? +e.h : +d.h,
+      rot: +rot||0,
+      mount: "mount" in e ? +e.mount||0 : (+d.mount||0)
+    };
+  });
+}
+
+const b64u = bytes => {
+  let s = "";
+  for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000));
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+};
+const unb64u = s => {
+  const t = s.replace(/-/g,"+").replace(/_/g,"/");
+  const bin = atob(t + "=".repeat((4 - t.length % 4) % 4));
+  const out = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+  return out;
+};
+
+const canZip = () => typeof CompressionStream === "function" && typeof DecompressionStream === "function";
+
+/* Push bytes through a (De)CompressionStream, refusing to buffer past `cap`
+   so a small payload can't inflate into a large one. */
+async function zipPipe(bytes, stream, cap){
+  const w = stream.writable.getWriter();
+  w.write(bytes).then(()=>w.close()).catch(()=>{});   // errors surface on the read side
+  const rd = stream.readable.getReader();
+  const parts = [];
+  let n = 0;
+  for(;;){
+    const {done, value} = await rd.read();
+    if(done) break;
+    n += value.length;
+    if(cap && n > cap){ rd.cancel().catch(()=>{}); throw new Error("payload expands too far"); }
+    parts.push(value);
+  }
+  const out = new Uint8Array(n);
+  let o = 0;
+  for(const p of parts){ out.set(p, o); o += p.length; }
+  return out;
+}
+
+/* `p1.` compressed, `p1u.` not. The prefix means a later format change is
+   detectable rather than silently mis-decoded. */
+async function encodeShare(name, list, opts){
+  const json  = JSON.stringify([SHARE_V, String(name==null?"Untitled":name), compactItems(list)]);
+  const bytes = new TextEncoder().encode(json);
+  if(!(opts && opts.compress === false) && canZip()){
+    try{ return "p1." + b64u(await zipPipe(bytes, new CompressionStream("deflate-raw"))); }
+    catch(e){ /* fall through and send it uncompressed */ }
+  }
+  return "p1u." + b64u(bytes);
+}
+
+/* Returns a snapshot in the same shape as a saved layout, so it can go
+   through restore() — a share link is untrusted input and doesn't get a
+   second, laxer path into items[]. */
+async function decodeShare(payload){
+  const raw = String(payload==null?"":payload).replace(/^#/, "");
+  if(!raw) throw new Error("That link doesn't have a layout in it.");
+  if(raw.length > SHARE_MAX) throw new Error("That link is too long to be a layout — it may have been mangled in transit.");
+  const m = /^p1(u?)\.([A-Za-z0-9_-]+)$/.exec(raw);
+  if(!m) throw new Error("That link isn't a bathroom plan, or it was made by a newer version of the planner.");
+  if(!m[1] && !canZip()) throw new Error("That link is compressed, and this browser can't unpack it.");
+
+  let bytes;
+  try{ bytes = unb64u(m[2]); }
+  catch(e){ throw new Error("That link is damaged — part of it is missing."); }
+  if(!m[1]){
+    try{ bytes = await zipPipe(bytes, new DecompressionStream("deflate-raw"), SHARE_CAP); }
+    catch(e){ throw new Error("That link is damaged — it wouldn't unpack. It may have been cut short."); }
+  }
+  if(bytes.length > SHARE_CAP) throw new Error("That link is bigger than any real layout.");
+
+  let parsed;
+  try{ parsed = JSON.parse(new TextDecoder().decode(bytes)); }
+  catch(e){ throw new Error("That link is damaged — the layout didn't read back."); }
+  if(!Array.isArray(parsed) || parsed.length < 3) throw new Error("That link doesn't have a layout in it.");
+
+  const [v, name, tuples] = parsed;
+  if(v !== SHARE_V) throw new Error(`That link is format ${v}; this planner reads format ${SHARE_V}.`);
+  return {
+    format: FORMAT, version: 1,
+    name: (typeof name === "string" && name.trim()) ? name : "Shared layout",
+    items: expandItems(tuples)
+  };
+}
+/* ==SHARE-CODEC-END== */
+
+/* The link is built on demand, never live-updated as fixtures move — that
+   would churn the URL and make the back button useless. */
+const shareBase = () => location.href.split("#")[0];
+let shareUrl = null, shareUrlFor = null;
+
+/* =====================================================================
+   SELECTION ACTIONS
+   ===================================================================== */
+function rotSel(deg){
+  const it = items.find(i=>i.id===sel); if(!it) return;
+  it.rot = (it.rot + deg + 360)%360; refresh(true);
+}
+function dupSel(){
+  const it = items.find(i=>i.id===sel); if(!it) return;
+  const c = JSON.parse(JSON.stringify(it));
+  c.id = uid++; c.x += 220; c.y += 220;
+  c.n = `${DEF[it.t].n} ${items.filter(i=>i.t===it.t).length+1}`;
+  items.push(c); sel = c.id; refresh(true);
+}
+function delSel(){
+  if(sel==null) return;
+  items = items.filter(i=>i.id!==sel); sel = null; refresh(true);
+}
+function renderItemBar(){
+  const bar = document.getElementById("itembar");
+  const it = items.find(i=>i.id===sel);
+  if(!it){ bar.hidden = true; return; }
+  bar.hidden = false;
+  document.getElementById("ib-name").textContent = it.n;
+}
+document.getElementById("ib-rot").addEventListener("click", ()=>rotSel(90));
+document.getElementById("ib-dup").addEventListener("click", dupSel);
+document.getElementById("ib-del").addEventListener("click", delSel);
+
+/* =====================================================================
+   SIDEBAR
+   ===================================================================== */
+let panel = "palette";
+function setPanel(name){
+  panel = name;
+  document.querySelectorAll(".panel-tabs button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.panel===name));
+  ["palette","inspect","files"].forEach(k=>{
+    document.getElementById("panel-"+k).style.display = (k===name)?"":"none";
+  });
+  if(name==="inspect") renderInspector();
+  if(name==="files")   renderFiles();
+}
+document.querySelectorAll(".panel-tabs button").forEach(b=>{
+  b.addEventListener("click", ()=>setPanel(b.dataset.panel));
+});
+
+function renderPalette(){
+  const el = document.getElementById("panel-palette");
+  el.innerHTML = CAT.map(g=>`
+    <h2 class="grp">${g.g}</h2>
+    ${g.items.map(i=>`
+      <div class="row" data-t="${i.t}">
+        <div>
+          <div class="nm">${i.n}</div>
+          <div class="dims">
+            <input type="number" data-k="w" value="${i.w}" step="10" min="50" title="Width">
+            <span class="x">×</span>
+            <input type="number" data-k="d" value="${i.d}" step="10" min="20" title="Depth">
+            <span class="x">×</span>
+            <input type="number" data-k="h" value="${i.h}" step="10" min="10" title="Height">
+          </div>
+        </div>
+        <button class="add" title="Add to plan">+</button>
+      </div>`).join("")}
+  `).join("");
+  el.insertAdjacentHTML("beforeend", `
+    <h2 class="grp">What I assumed</h2>
+    <div class="note">
+      <b>Wet room floor</b> — level throughout, linear drain at the shower end. No tray, no kerb.<br><br>
+      <b>No window.</b> Nothing was drawn on the sketch.<br><br>
+      <b>Wall-hung WC</b> needs a frame in a duct roughly 200 deep. Add one from the list above if you want to see what it costs you.<br><br>
+      <b>Sizes are bare structure</b> — no allowance for tiling or boarding.
+    </div>`);
+  el.querySelectorAll(".row").forEach(row=>{
+    row.querySelector(".add").addEventListener("click",()=>{
+      const t = row.dataset.t;
+      const get = k => +row.querySelector(`input[data-k="${k}"]`).value;
+      const n = DEF[t].n;
+      const same = items.filter(i=>i.t===t).length;
+      const it = mk(t, 900, 1900, 0, same? `${n} ${same+1}` : n);
+      it.w=get("w"); it.d=get("d"); it.h=get("h");
+      // drop it somewhere free-ish
+      let tries=0;
+      while(clashes(it) && tries<60){ it.x = 300+ (tries*137)%1300; it.y = 1100 + (tries*211)%2100; tries++; }
+      items.push(it);
+      sel = it.id;
+      refresh(true);
+    });
+  });
+}
+
+function clearanceHtml(it){
+  const g = gaps(it);
+  const row = (k,lbl)=> g[k] ? `<div class="cl"><span>${lbl} — ${g[k].who}</span><span>${g[k].d}</span></div>` : "";
+  return `<h2 class="grp" style="margin-top:2px">Clearances (mm)</h2>
+    ${row("left","Left")}${row("right","Right")}${row("up","Up")}${row("down","Down")}
+    ${clashes(it)?`<div class="cl"><span style="color:var(--clash)">Clash</span><span style="color:var(--clash)">overlapping</span></div>`:""}`;
+}
+function renderClearances(){
+  const it = items.find(i=>i.id===sel);
+  const box = document.getElementById("clrbox");
+  if(it && box) box.innerHTML = clearanceHtml(it);
+}
+function renderInspector(){
+  const el = document.getElementById("panel-inspect");
+  const it = items.find(i=>i.id===sel);
+  if(!it){ el.innerHTML = `<div class="empty">Nothing selected.<br><br>Click a fixture in the plan to move it, resize it, rotate it or read its clearances.</div>`; return; }
+  el.innerHTML = `
+    <h2 class="grp">${it.n}</h2>
+    <div class="field"><label>Width</label><input type="number" id="f-w" value="${it.w}" step="10" min="50"></div>
+    <div class="field"><label>Depth</label><input type="number" id="f-d" value="${it.d}" step="10" min="20"></div>
+    <div class="field"><label>Height</label><input type="number" id="f-h" value="${it.h}" step="10" min="10"></div>
+    <div class="field"><label>Off floor</label><input type="number" id="f-m" value="${it.mount||0}" step="10" min="0"></div>
+    <div class="field"><label>Rotation</label><input type="number" id="f-r" value="${it.rot}" step="15"></div>
+    <div class="btnrow">
+      <button data-rot="-90">↺ 90</button>
+      <button data-rot="-15">↺ 15</button>
+      <button data-rot="15">15 ↻</button>
+      <button data-rot="90">90 ↻</button>
+    </div>
+    <div class="field"><label>X / Y</label><span style="font-family:'Roboto Mono',monospace;font-size:13px">${Math.round(it.x)}, ${Math.round(it.y)}</span></div>
+    <div class="btnrow">
+      <button id="f-dup">Duplicate</button>
+      <button id="f-del" class="danger">Delete</button>
+    </div>
+    <div class="clr" id="clrbox">${clearanceHtml(it)}</div>`;
+  const bind = (id,key)=> el.querySelector(id).addEventListener("input",e=>{
+    const v = +e.target.value; if(e.target.value===""||isNaN(v)) return;
+    it[key] = (key==="rot") ? v : (key==="mount") ? Math.max(0,v) : Math.max(10,v);
+    renderPlan(); renderChips(); renderClearances(); build3DItems();
+  });
+  bind("#f-w","w"); bind("#f-d","d"); bind("#f-h","h"); bind("#f-m","mount"); bind("#f-r","rot");
+  el.querySelectorAll("[data-rot]").forEach(b=>b.addEventListener("click",()=>rotSel(+b.dataset.rot)));
+  el.querySelector("#f-dup").addEventListener("click", dupSel);
+  el.querySelector("#f-del").addEventListener("click", delSel);
+}
+
+function renderFiles(){
+  const el = document.getElementById("panel-files");
+  const list = layoutList();
+  const dirty = lastSavedJSON !== null && lastSavedJSON !== itemsJSON();
+  const state = lastSavedJSON === null ? (autosaveOff ? "From a link — not saved" : "Not saved yet")
+              : dirty ? "Unsaved changes" : `Saved ${lastSavedAt}`;
+  const linkFresh = shareUrl !== null && shareUrlFor === itemsJSON();
+  el.innerHTML = `
+    <h2 class="grp">This layout</h2>
+    <div class="saverow">
+      <input type="text" id="lay-name" value="${esc(currentName)}" placeholder="Name this layout">
+      <button class="savebtn" id="lay-save">Save</button>
+    </div>
+    <div class="savestate ${dirty?"dirty":""}">${state}</div>
+    ${fileMsg ? `<div class="fmsg ${fileMsgErr?"err":""}">${esc(fileMsg)}</div>` : ""}
+
+    <h2 class="grp">Saved layouts${list.length?` (${list.length})`:""}</h2>
+    ${list.length ? list.map(l=>`
+      <div class="frow${l.id===currentId?" cur":""}">
+        <div class="fname">${esc(l.name)}</div>
+        <div class="fmeta">${(l.items||[]).length} items · ${fmtDate(l.saved)}</div>
+        <div class="fbtns">
+          <button data-act="load" data-id="${l.id}">Load</button>
+          <button data-act="dup"  data-id="${l.id}">Copy</button>
+          <button data-act="exp"  data-id="${l.id}">Export</button>
+          <button data-act="del"  data-id="${l.id}" class="danger">Delete</button>
+        </div>
+      </div>`).join("") : `<div class="empty">Nothing saved yet. Name this layout and hit Save.</div>`}
+
+    <h2 class="grp">Send &amp; receive</h2>
+    <div class="btnrow">
+      <button id="lay-link">Copy share link</button>
+    </div>
+    ${linkFresh ? `<input type="text" id="lay-linkbox" readonly spellcheck="false">` : ""}
+    <div class="btnrow">
+      <button id="lay-exp">Export file</button>
+      <button id="lay-imp">Import file</button>
+    </div>
+    <input type="file" id="lay-file" accept=".json,application/json" hidden>
+
+    <div class="note">${store.backed
+      ? "A share link carries the whole layout inside the URL — nothing is uploaded, and whoever opens it sees exactly this plan. Saved layouts live in this browser only, so export a file if you want a backup that survives clearing browser data."
+      : "<b>This preview can't use browser storage</b>, so saves last only until the tab closes. Share links and file export still work."}</div>`;
+
+  el.querySelector("#lay-save").addEventListener("click", saveCurrent);
+  el.querySelector("#lay-name").addEventListener("keydown", e=>{ if(e.key==="Enter") saveCurrent(); });
+
+  el.querySelectorAll(".fbtns button").forEach(b=>b.addEventListener("click",()=>{
+    const id = b.dataset.id, d = store.read(), rec = d.layouts[id];
+    if(!rec) return;
+    if(b.dataset.act==="load"){
+      try{
+        const notes = restore(rec);
+        currentId = id;
+        fileMsg = `Loaded "${rec.name}".` + (notes.length?` (${notes.join("; ")})`:"");
+        fileMsgErr = false;
+        refresh(true);
+      }catch(err){ fileMsg = err.message; fileMsgErr = true; renderFiles(); }
+    }else if(b.dataset.act==="dup"){
+      const copy = JSON.parse(JSON.stringify(rec));
+      copy.name = `${rec.name} copy`;
+      copy.saved = new Date().toISOString();
+      const nid = "L" + Date.now().toString(36);
+      if(persist(dd => { dd.layouts[nid] = copy; })){ fileMsg = `Duplicated as "${copy.name}".`; fileMsgErr = false; }
+      renderFiles();
+    }else if(b.dataset.act==="exp"){
+      if(!downloadJSON(rec, `bathroom-plan-${slug(rec.name)}.json`)){
+        fileMsg = "Download was blocked here — load it, then copy a share link."; fileMsgErr = true;
+      }
+      renderFiles();
+    }else if(b.dataset.act==="del"){
+      if(persist(dd => { delete dd.layouts[id]; })){
+        if(currentId===id) currentId = null;
+        fileMsg = `Deleted "${rec.name}".`; fileMsgErr = false;
+      }
+      renderFiles();
+    }
+  }));
+
+  el.querySelector("#lay-exp").addEventListener("click",()=>{
+    const name = (el.querySelector("#lay-name").value||"").trim() || currentName;
+    if(!downloadJSON(snapshot(name), `bathroom-plan-${slug(name)}.json`)){
+      fileMsg = "Download was blocked here — copy a share link instead."; fileMsgErr = true;
+      renderFiles();
+    }
+  });
+
+  el.querySelector("#lay-imp").addEventListener("click",()=>el.querySelector("#lay-file").click());
+  el.querySelector("#lay-file").addEventListener("change", e=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ()=>{ importText(String(rd.result), f.name); };
+    rd.onerror = ()=>{ fileMsg = "Couldn't read that file."; fileMsgErr = true; renderFiles(); };
+    rd.readAsText(f);
+  });
+
+  if(linkFresh) el.querySelector("#lay-linkbox").value = shareUrl;
+
+  el.querySelector("#lay-link").addEventListener("click", async ()=>{
+    const name = (el.querySelector("#lay-name").value||"").trim() || currentName;
+    let copied = false;
+    try{
+      const forJSON = itemsJSON();
+      const url = shareBase() + "#" + await encodeShare(name, itemData());
+      shareUrl = url; shareUrlFor = forJSON;
+      try{ await navigator.clipboard.writeText(url); copied = true; }
+      catch(err){ copied = false; }
+      fileMsg = copied
+        ? `Share link copied — ${url.length} characters. Anyone who opens it gets this exact layout.`
+        : "Couldn't reach the clipboard — the link is below, select it and copy.";
+      fileMsgErr = false;
+    }catch(err){
+      shareUrl = null; shareUrlFor = null;
+      fileMsg = "Couldn't build a share link — " + err.message; fileMsgErr = true;
+    }
+    renderFiles();
+    const box = document.getElementById("lay-linkbox");
+    if(box && !copied){ box.focus(); box.select(); }
+  });
+}
+
+function importText(text, label){
+  let parsed;
+  try{ parsed = JSON.parse(text); }
+  catch(e){ fileMsg = `Couldn't read ${label} — that isn't valid JSON.`; fileMsgErr = true; renderFiles(); return; }
+  try{
+    const notes = restore(parsed);
+    const id = "L" + Date.now().toString(36);
+    persist(d => { d.layouts[id] = snapshot(currentName); });
+    currentId = id;
+    fileMsg = `Imported "${currentName}".` + (notes.length?` (${notes.join("; ")})`:"");
+    fileMsgErr = false;
+    refresh(true);
+  }catch(err){ fileMsg = err.message; fileMsgErr = true; renderFiles(); }
+}
+
+/* =====================================================================
+   VIEW SWITCH
+   ===================================================================== */
+document.querySelectorAll("#viewseg button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll("#viewseg button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+    const v = b.dataset.view;
+    document.getElementById("pane2d").classList.toggle("hidden", v==="3d");
+    document.getElementById("pane3d").classList.toggle("hidden", v==="plan");
+    resize3D();
+  });
+});
+document.getElementById("btn-reset").addEventListener("click",()=>{
+  items = startingLayout(); sel = null;
+  currentId = null; currentName = "Bathroom plan"; lastSavedJSON = null; lastSavedAt = null;
+  fileMsg = null;
+  refresh(true);
+});
+
+/* =====================================================================
+   REFRESH
+   ===================================================================== */
+function refresh(keepPanel, rebuildMesh){
+  renderPlan();
+  renderChips();
+  renderItemBar();
+  if(panel==="inspect" || keepPanel) renderInspector();
+  if(panel==="files") renderFiles();
+  build3DItems();
+  queueAutosave();
+}
+
+/* =====================================================================
+   3D
+   ===================================================================== */
+let scene, camera, renderer, itemRoot, wallMeshes=[], meshById={};
+const cam = {theta:-Math.PI/2 + 0.55, phi:0.92, r:6400, tx:1000, ty:850, tz:1750};
+
+const C3 = {
+  floor:0xD9D5CE, wall:0xEFEDE8, wallOut:0xC9C4BC,
+  fixture:0xF7F7F5, accent:0x2E7A56, glass:0x9CC8D8, plant:0x3F7D4A, plant2:0x569160,
+  soil:0x4A3B2C, potRim:0x9C7A59,
+  pot:0xB08C6A, metal:0x9AA3A8, water:0xCFE3EA, mirror:0xBFD2D8
+};
+
+function init3D(){
+  const canvas = document.getElementById("c3d");
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x191D21);
+  camera = new THREE.PerspectiveCamera(45, 1, 10, 40000);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x6a6f74, 0.95));
+  const key = new THREE.DirectionalLight(0xffffff, 0.75);
+  key.position.set(3000, 6000, 2000); scene.add(key);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.28);
+  fill.position.set(-2500, 3000, -2500); scene.add(fill);
+
+  // floor
+  const shape = new THREE.Shape();
+  POLY.forEach((p,i)=> i? shape.lineTo(p[0],p[1]) : shape.moveTo(p[0],p[1]));
+  const fg = new THREE.ShapeGeometry(shape);
+  const floor = new THREE.Mesh(fg, new THREE.MeshLambertMaterial({color:C3.floor, side:THREE.DoubleSide}));
+  floor.rotation.x = Math.PI/2;
+  scene.add(floor);
+
+  // walls
+  for(const b of BANDS){
+    if(isDoorWall(b)){
+      addWallBox(R.door.x2, b.y1, b.x2, b.y2, R.ceil);                    // solid beyond the opening
+      addWallBox(b.x1, b.y1, R.door.x2, b.y2, R.ceil-2100, 2100);         // lintel over the opening
+    }else{
+      addWallBox(b.x1, b.y1, b.x2, b.y2, R.ceil);
+    }
+  }
+
+  itemRoot = new THREE.Group();
+  scene.add(itemRoot);
+
+  attachOrbit(canvas);
+  window.addEventListener("resize", resize3D);
+  resize3D();
+  animate();
+}
+
+function addWallBox(x1,z1,x2,z2,h,yBase){
+  const geo = new THREE.BoxGeometry(x2-x1, h, z2-z1);
+  const mat = new THREE.MeshLambertMaterial({color:C3.wall});
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set((x1+x2)/2, (yBase||0)+h/2, (z1+z2)/2);
+  m.userData.cx = (x1+x2)/2; m.userData.cz = (z1+z2)/2;
+  scene.add(m); wallMeshes.push(m);
+}
+
+function boxMesh(w,h,d,color,opts){
+  const mat = new THREE.MeshLambertMaterial(Object.assign({color}, opts||{}));
+  return new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+}
+
+function build3DItems(){
+  if(!itemRoot) return;
+  while(itemRoot.children.length) itemRoot.remove(itemRoot.children[0]);
+  meshById = {};
+  for(const it of items){
+    const g = itemMesh(it);
+    g.position.set(it.x, it.mount||0, it.y);
+    g.rotation.y = -rad(it.rot);
+    itemRoot.add(g);
+    meshById[it.id] = g;
+  }
+}
+function move3D(it){
+  const g = meshById[it.id];
+  if(g){ g.position.set(it.x, it.mount||0, it.y); g.rotation.y = -rad(it.rot); }
+}
+
+function itemMesh(it){
+  const g = new THREE.Group();
+  const d = DEF[it.t], W=it.w, D=it.d, H=it.h;
+  const put=(m,y)=>{m.position.y=y;g.add(m);return m;};
+
+  switch(d.glyph){
+    case "bath":{
+      put(boxMesh(W,H,D,C3.fixture), H/2);
+      const inner = boxMesh(Math.max(40,W-160),60,Math.max(40,D-160),C3.water);
+      inner.position.set(0,H-70,0); g.add(inner);
+      const tap = boxMesh(60,150,60,C3.metal);
+      tap.position.set(-W/2+190, H+75, -D/2+90); g.add(tap);
+      break;
+    }
+    case "wc":{
+      put(boxMesh(W,H*0.75,D*0.75,C3.fixture), H*0.62);
+      const seat = boxMesh(W-40,50,D*0.7,0xEFEFEF);
+      seat.position.set(0,H,10); g.add(seat);
+      break;
+    }
+    case "vanity":{
+      put(boxMesh(W,H,D,C3.fixture), H/2);
+      const top = boxMesh(W+30,50,D+30,0xE4E2DC); top.position.y=H+20; g.add(top);
+      const br = Math.max(50, Math.min(190, W/4, D/2.6));
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(br,br*0.79,110,24), new THREE.MeshLambertMaterial({color:0xFFFFFF}));
+      bowl.position.set(0,H+95,10); g.add(bowl);
+      break;
+    }
+    case "basin":{
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(W/2,W/2.6,H,24), new THREE.MeshLambertMaterial({color:0xFFFFFF}));
+      put(bowl,H/2); break;
+    }
+    case "glass":{
+      const m = boxMesh(W,H,Math.max(D,18),C3.glass,{transparent:true,opacity:0.3});
+      put(m,H/2);
+      const f = boxMesh(W,40,Math.max(D,18)+10,C3.metal); f.position.y=H; g.add(f);
+      break;
+    }
+    case "head":{
+      const arm = boxMesh(240,60,60,C3.metal); arm.position.set(-100,0,0); g.add(arm);
+      const rose = new THREE.Mesh(new THREE.CylinderGeometry(115,115,40,20), new THREE.MeshLambertMaterial({color:C3.metal}));
+      rose.position.set(-210,-45,0); g.add(rose);
+      break;
+    }
+    case "drain":{ put(boxMesh(W,20,D,C3.metal), 10); break; }
+    case "mirror":{
+      put(boxMesh(W,H,Math.max(D,25),C3.mirror), H/2); break;
+    }
+    case "shelf":{
+      const n = Math.max(2, Math.round(H/380));
+      for(let i=0;i<n;i++){
+        const s = boxMesh(W,26,D,C3.fixture);
+        s.position.y = H*(i+1)/n - 26;
+        g.add(s);
+      }
+      break;
+    }
+    case "rail":{
+      const bars = Math.max(2, Math.round(H/260));
+      for(let i=0;i<bars;i++){
+        const b = new THREE.Mesh(new THREE.CylinderGeometry(22,22,W-60,12), new THREE.MeshLambertMaterial({color:C3.metal}));
+        b.rotation.z = Math.PI/2;
+        b.position.set(0, H*(i+0.5)/bars, 0);
+        g.add(b);
+      }
+      const l1 = boxMesh(40,H,40,C3.metal); l1.position.set(-W/2+30,H/2,0); g.add(l1);
+      const l2 = boxMesh(40,H,40,C3.metal); l2.position.set(W/2-30,H/2,0); g.add(l2);
+      break;
+    }
+    case "plant":{
+      const potR = Math.max(35, Math.min(W,D)/2*0.82);
+      const potH = Math.min(H*0.45, Math.max(30, potR*1.7));
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(potR, potR*0.70, potH, 24),
+        new THREE.MeshLambertMaterial({color:C3.pot}));
+      pot.position.y = potH/2; g.add(pot);
+      const rimH = Math.max(14, potH*0.13);
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(potR*1.07, potR*1.03, rimH, 24),
+        new THREE.MeshLambertMaterial({color:C3.potRim}));
+      rim.position.y = potH - rimH/2; g.add(rim);
+      const soil = new THREE.Mesh(new THREE.CylinderGeometry(potR*0.93, potR*0.93, 26, 20),
+        new THREE.MeshLambertMaterial({color:C3.soil}));
+      soil.position.y = potH - 13; g.add(soil);
+
+      // foliage starts below the soil line so nothing appears to hover
+      const base  = potH - Math.min(22, potH*0.25);
+      const reach = Math.max(40, H - base);
+
+      if(reach > 520){
+        // tall, narrow footprint — upright blades, dracaena style
+        const n = 9;
+        for(let i=0;i<n;i++){
+          const tilt = 0.09 + (i%3)*0.06;
+          const len  = reach/Math.cos(tilt) * (0.60 + (i%3)*0.20);
+          const leaf = new THREE.Mesh(
+            new THREE.CylinderGeometry(Math.max(1, len*0.018), potR*0.30, len, 6),
+            new THREE.MeshLambertMaterial({color: i%2 ? C3.plant : C3.plant2}));
+          leaf.scale.z = 0.30;
+          leaf.rotation.x = tilt;
+          leaf.position.set(0, len/2*Math.cos(tilt), potR*0.26 + len/2*Math.sin(tilt));
+          const pivot = new THREE.Group();
+          pivot.rotation.y = (i/n)*Math.PI*2 + (i%2)*0.34;
+          pivot.position.y = base;
+          pivot.add(leaf); g.add(pivot);
+        }
+      }else{
+        // low and bushy — overlapping mound built in unit space, then scaled to fit
+        const bush = new THREE.Group();
+        const blobs = [[0,0.45,0,0.45],[-0.48,0.30,0.18,0.36],[0.46,0.32,-0.20,0.34],
+                       [0.15,0.66,0.28,0.30],[-0.20,0.63,-0.26,0.29],[0.02,0.18,0,0.42]];
+        blobs.forEach(([bx,by,bz,br],i)=>{
+          const s = new THREE.Mesh(new THREE.SphereGeometry(br,14,12),
+            new THREE.MeshLambertMaterial({color: i%2 ? C3.plant : C3.plant2}));
+          s.position.set(bx,by,bz); bush.add(s);
+        });
+        const rr = Math.max(30, Math.min(W,D)/2*0.98);
+        bush.scale.set(rr, reach, rr);
+        bush.position.y = base;
+        g.add(bush);
+      }
+      break;
+    }
+    default: put(boxMesh(W,H,D,C3.fixture), H/2);
+  }
+  return g;
+}
+
+/* orbit controls */
+function attachOrbit(canvas){
+  let mode=null, lx=0, ly=0;
+  canvas.addEventListener("contextmenu",e=>e.preventDefault());
+  canvas.addEventListener("pointerdown",e=>{
+    mode = (e.button===2 || e.shiftKey) ? "pan" : "orbit";
+    lx=e.clientX; ly=e.clientY;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove",e=>{
+    if(!mode) return;
+    const dx=e.clientX-lx, dy=e.clientY-ly; lx=e.clientX; ly=e.clientY;
+    if(mode==="orbit"){
+      cam.theta -= dx*0.006;
+      cam.phi = Math.max(0.08, Math.min(Math.PI/2-0.02, cam.phi - dy*0.005));
+    }else{
+      const s = cam.r*0.0011;
+      cam.tx += Math.sin(cam.theta)*dx*s;
+      cam.tz -= Math.cos(cam.theta)*dx*s;
+      cam.ty += dy*s;
+    }
+  });
+  const stop=()=>mode=null;
+  canvas.addEventListener("pointerup",stop);
+  canvas.addEventListener("pointercancel",stop);
+  canvas.addEventListener("wheel",e=>{
+    e.preventDefault();
+    cam.r = Math.max(900, Math.min(20000, cam.r * (1 + Math.sign(e.deltaY)*0.12)));
+  },{passive:false});
+}
+
+function resize3D(){
+  if(!renderer) return;
+  const c = document.getElementById("c3d");
+  const w = c.clientWidth || 1, h = c.clientHeight || 1;
+  renderer.setSize(w,h,false);
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  const cx = cam.tx, cy = cam.ty, cz = cam.tz;
+  camera.position.set(
+    cx + cam.r*Math.cos(cam.phi)*Math.cos(cam.theta),
+    cy + cam.r*Math.sin(cam.phi),
+    cz + cam.r*Math.cos(cam.phi)*Math.sin(cam.theta)
+  );
+  camera.lookAt(cx, cy, cz);
+
+  // doll's-house: hide whichever walls sit between the camera and the room
+  const rc = new THREE.Vector3(1000, 0, 1750);
+  for(const m of wallMeshes){
+    const toWall = new THREE.Vector3(m.userData.cx - rc.x, 0, m.userData.cz - rc.z).normalize();
+    const toCam  = new THREE.Vector3(camera.position.x - rc.x, 0, camera.position.z - rc.z).normalize();
+    m.visible = toWall.dot(toCam) < 0.42;
+  }
+  renderer.render(scene, camera);
+}
+
+/* =====================================================================
+   GO
+   ===================================================================== */
+renderPalette();
+renderInspector();
+
+function loadAutosave(){
+  const auto = store.read().auto;
+  if(!(auto && Array.isArray(auto.items) && auto.items.length)) return false;
+  try{
+    restore(auto);
+    lastSavedJSON = null; lastSavedAt = null;
+    return true;
+  }catch(e){ items = startingLayout(); return false; }
+}
+
+// A layout in the hash wins over the autosave — but until they save it,
+// autosave stays off, so opening someone else's link never quietly
+// overwrites the session they had going.
+function loadFromLink(payload){
+  autosaveOff = true;
+  return decodeShare(payload).then(snap=>{
+    restore(snap);
+    currentId = null;
+    lastSavedJSON = null; lastSavedAt = null;
+    fileMsg = `Loaded "${currentName}" from a link. Save it to keep it here — until you do, ` +
+              `autosave is paused so your last session stays as you left it.`;
+    fileMsgErr = false;
+    refresh(true);
+    setPanel("files");           // the message explains what just happened —
+  }).catch(err=>{                 // don't leave it behind an unopened tab
+    const had = loadAutosave();
+    autosaveOff = false;
+    fileMsg = err.message + (had ? " Your last session is back." : "");
+    fileMsgErr = true;
+    refresh(true);
+    setPanel("files");
+  });
+}
+
+// Pasting a link into a tab that already has the planner open changes the
+// hash without reloading, so the load has to hang off hashchange as well as
+// startup. Our own replaceState on save doesn't fire this.
+window.addEventListener("hashchange", ()=>{
+  const h = location.hash.slice(1);
+  if(h) loadFromLink(h);
+});
+
+const fromLink = location.hash.slice(1);
+if(fromLink){
+  autosaveOff = true;                     // before refresh(), which would queue one
+}else if(loadAutosave()){
+  fileMsg = "Picked up your last session."; fileMsgErr = false;
+}
+renderFiles();
+refresh();
+if(fromLink) loadFromLink(fromLink);
+if(window.THREE){ init3D(); build3DItems(); }
+else{
+  document.getElementById("pane3d").innerHTML =
+    '<div style="margin:auto;color:#8794A0;font-size:14px;padding:24px;text-align:center">3D needs the three.js CDN — check your connection and reload.</div>';
+}
+</script>
+</body>
+</html>
