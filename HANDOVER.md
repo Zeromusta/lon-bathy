@@ -193,6 +193,26 @@ Each of these was a real bug, found and fixed:
   which crashes the tab as an unhandled rejection instead of surfacing as a caught error
   on the read side.
 
+## The 3D view only draws when something changes
+
+Nothing in the scene animates, so the old `requestAnimationFrame` loop spent a core and a
+GPU process redrawing an identical image forever — Mark saw Edge sitting at ~23% CPU and
+~21% GPU on an idle tab.
+
+`invalidate()` marks the view dirty and schedules **at most one** frame; `animate()` clears
+`rafId`, draws once, and schedules nothing. The loop falls idle on its own. Measured at
+zero draws over 16 seconds idle, against ~985 before.
+
+Everything that changes what the camera would see has to call it: `build3DItems`,
+`move3D`, `resize3D`, the orbit `pointermove`, the wheel handler, and `restore()` when a
+saved view lands. **If you add anything that moves a mesh or the camera and skip
+`invalidate()`, the change silently will not appear** — that's the trap this design sets,
+and it's the thing to check first if the 3D view ever looks stale.
+
+A hidden tab suspends rAF, which is the browser saving the work for us; the
+`visibilitychange` handler redraws once on the way back, since a backgrounded tab can lose
+its drawing buffer.
+
 ## 3D and Firefox
 
 Mark hit `THREE.WebGLRenderer: Error creating WebGL context` in Firefox, which used to
@@ -213,6 +233,23 @@ recoverable cause, not a verified fix for Mark's machine. If it still fails, the
 now carries the real error, which is the thing to go on. three.js is pinned at r128
 (2021); a newer build is a plausible next thing to try, but the post-r128 API changes make
 it more than a version bump.
+
+## The Files panel
+
+- **`currentId` is the slot the layout is bound to** — set on save, on load, on import;
+  cleared by `saveAsNew()` so `saveCurrent()` mints a fresh one. The panel says which slot
+  is being edited, and the row carries a `current` badge.
+- **Save overwrites that slot** (renaming it if the name box changed); **Save as new**
+  always creates another, stepping the name via `uniqueName()` so you don't end up with
+  two identically-named slots and no way to tell them apart. Save as new only appears when
+  there is a slot to fork from — with nothing saved yet the two would do the same thing.
+- **One share link exists at a time**, held in `shareUrl` under a `shareUrlFor` key:
+  `cur:<itemsJSON>` for the working layout, `row:<id>:<saved>` for a saved slot. The box
+  renders wherever the key matches, so it always appears next to the thing it is a link
+  to, and a row's link stops being offered the moment that row is re-saved.
+- A row's **Link** encodes that row's own items and its own saved camera — not whatever
+  happens to be loaded. Worth re-testing if you touch `makeShareLink`; it is an easy thing
+  to get subtly wrong and never notice.
 
 ## Open questions for Mark
 

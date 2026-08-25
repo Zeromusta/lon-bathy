@@ -157,7 +157,8 @@ h2.grp:first-child{margin-top:2px}
 .fmsg.err{color:#F0B4A6;background:#3A211A;border-color:#5E3226}
 .frow{border:1px solid var(--chrome-line);border-radius:5px;padding:8px 9px;margin-bottom:7px}
 .frow.cur{border-color:var(--select)}
-.fname{font-size:14px;color:var(--on-chrome);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fname{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--on-chrome)}
+.fname .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fmeta{font-size:11px;color:var(--on-chrome-dim);font-family:"Roboto Mono",monospace;margin:2px 0 6px}
 .fbtns{display:flex;gap:4px}
 .fbtns button{
@@ -167,11 +168,17 @@ h2.grp:first-child{margin-top:2px}
 .fbtns button:hover{background:var(--chrome-line)}
 .fbtns button.danger{color:#F09A8C}
 .fbtns button.danger:hover{background:#5A2A22;border-color:#7A3A2E}
-#lay-linkbox{
+.linkbox{
   width:100%;background:var(--chrome);border:1px solid var(--select);
   border-radius:4px;color:var(--on-chrome);font-family:"Roboto Mono",monospace;font-size:11px;
-  padding:7px;margin:4px 0;
+  padding:7px;margin:6px 0 0;
 }
+.savestate b{color:var(--on-chrome);font-weight:500}
+.curbadge{
+  flex:none;font-size:9px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--select);border:1px solid var(--select);border-radius:3px;padding:1px 5px;
+}
+.fbtns + .fbtns{margin-top:4px}
 .note{
   font-size:13px;line-height:1.5;color:var(--on-chrome-dim);
   border-left:2px solid var(--chrome-line);padding-left:10px;margin:14px 0 0;
@@ -921,7 +928,7 @@ function restore(snap){
   // in — a link's view goes through viewFromTuple exactly like its items go
   // through the DEF filter.
   const view = viewFromTuple(snap.view);
-  if(view) Object.assign(cam, view);
+  if(view){ Object.assign(cam, view); invalidate(); }
   currentName = snap.name || "Untitled";
   lastSavedJSON = itemsJSON();
   lastSavedAt = "just now";
@@ -1314,40 +1321,97 @@ function renderInspector(){
   el.querySelector("#f-del").addEventListener("click", delSel);
 }
 
+/* "Bathroom plan" saved twice gives two identically-named slots and no way
+   to tell them apart, so Save as new steps the name on. */
+function uniqueName(base){
+  const taken = new Set(layoutList().map(l => l.name));
+  if(!taken.has(base)) return base;
+  let n = 2;
+  while(taken.has(`${base} ${n}`)) n++;
+  return `${base} ${n}`;
+}
+
+function saveAsNew(){
+  const box = document.getElementById("lay-name");
+  const base = ((box && box.value) || currentName || "Untitled").trim() || "Untitled";
+  if(box) box.value = uniqueName(base);
+  currentId = null;              // saveCurrent() mints a fresh slot when there isn't one
+  saveCurrent();
+}
+
+/* One link at a time, stashed under a key so the box renders next to
+   whatever it is a link to — the working layout, or one saved row. */
+const curKey = () => "cur:" + itemsJSON();
+const rowKey = l => "row:" + l.id + ":" + l.saved;
+
+async function makeShareLink(name, list, view, key){
+  let copied = false;
+  try{
+    const url = shareBase() + "#" + await encodeShare(name, list, view ? {view} : undefined);
+    shareUrl = url; shareUrlFor = key;
+    try{ await navigator.clipboard.writeText(url); copied = true; }
+    catch(err){ copied = false; }
+    fileMsg = copied
+      ? `Link to "${name}" copied — ${url.length} characters.`
+      : `Couldn't reach the clipboard — the link to "${name}" is below, select it and copy.`;
+    fileMsgErr = false;
+  }catch(err){
+    shareUrl = null; shareUrlFor = null;
+    fileMsg = "Couldn't build a share link — " + err.message; fileMsgErr = true;
+  }
+  renderFiles();
+  const box = document.querySelector(".linkbox");
+  if(box && !copied){ box.focus(); box.select(); }
+}
+
 function renderFiles(){
   const el = document.getElementById("panel-files");
   const list = layoutList();
   const dirty = lastSavedJSON !== null && lastSavedJSON !== itemsJSON();
   const state = lastSavedJSON === null ? (autosaveOff ? "From a link — not saved" : "Not saved yet")
               : dirty ? "Unsaved changes" : `Saved ${lastSavedAt}`;
-  const linkFresh = shareUrl !== null && shareUrlFor === itemsJSON();
+  const bound = currentId ? list.find(l => l.id === currentId) : null;
+  const linkBox = key => (shareUrl !== null && shareUrlFor === key)
+    ? `<input type="text" class="linkbox" readonly spellcheck="false">` : "";
+
+  // say plainly which saved slot is being edited, if any
+  const where = bound
+    ? `Editing <b>${esc(bound.name)}</b>${dirty ? " · unsaved changes" : ` · saved ${fmtDate(bound.saved)}`}`
+    : `<b>${state}</b>${state === "Not saved yet" ? " · Save puts it in the list below" : ""}`;
+
   el.innerHTML = `
     <h2 class="grp">This layout</h2>
     <div class="saverow">
       <input type="text" id="lay-name" value="${esc(currentName)}" placeholder="Name this layout">
-      <button class="savebtn" id="lay-save">Save</button>
+      <button class="savebtn" id="lay-save" title="${bound ? "Overwrite this slot" : "Save into a new slot"}">Save</button>
     </div>
-    <div class="savestate ${dirty?"dirty":""}">${state}</div>
+    <div class="savestate ${dirty?"dirty":""}">${where}</div>
+    ${bound ? `<div class="btnrow"><button id="lay-saveas">Save as new</button></div>` : ""}
     ${fileMsg ? `<div class="fmsg ${fileMsgErr?"err":""}">${esc(fileMsg)}</div>` : ""}
 
     <h2 class="grp">Saved layouts${list.length?` (${list.length})`:""}</h2>
     ${list.length ? list.map(l=>`
       <div class="frow${l.id===currentId?" cur":""}">
-        <div class="fname">${esc(l.name)}</div>
+        <div class="fname"><span class="n">${esc(l.name)}</span>${
+          l.id===currentId ? `<span class="curbadge">current</span>` : ""}</div>
         <div class="fmeta">${(l.items||[]).length} items · ${fmtDate(l.saved)}</div>
         <div class="fbtns">
           <button data-act="load" data-id="${l.id}">Load</button>
-          <button data-act="dup"  data-id="${l.id}">Copy</button>
+          <button data-act="link" data-id="${l.id}">Link</button>
           <button data-act="exp"  data-id="${l.id}">Export</button>
+        </div>
+        <div class="fbtns">
+          <button data-act="dup"  data-id="${l.id}">Duplicate</button>
           <button data-act="del"  data-id="${l.id}" class="danger">Delete</button>
         </div>
+        ${linkBox(rowKey(l))}
       </div>`).join("") : `<div class="empty">Nothing saved yet. Name this layout and hit Save.</div>`}
 
     <h2 class="grp">Send &amp; receive</h2>
     <div class="btnrow">
-      <button id="lay-link">Copy share link</button>
+      <button id="lay-link">Copy link to this layout</button>
     </div>
-    ${linkFresh ? `<input type="text" id="lay-linkbox" readonly spellcheck="false">` : ""}
+    ${linkBox(curKey())}
     <div class="btnrow">
       <button id="lay-exp">Export file</button>
       <button id="lay-imp">Import file</button>
@@ -1360,6 +1424,8 @@ function renderFiles(){
 
   el.querySelector("#lay-save").addEventListener("click", saveCurrent);
   el.querySelector("#lay-name").addEventListener("keydown", e=>{ if(e.key==="Enter") saveCurrent(); });
+  const sa = el.querySelector("#lay-saveas");
+  if(sa) sa.addEventListener("click", saveAsNew);
 
   el.querySelectorAll(".fbtns button").forEach(b=>b.addEventListener("click",()=>{
     const id = b.dataset.id, d = store.read(), rec = d.layouts[id];
@@ -1372,6 +1438,9 @@ function renderFiles(){
         fileMsgErr = false;
         refresh(true);
       }catch(err){ fileMsg = err.message; fileMsgErr = true; renderFiles(); }
+    }else if(b.dataset.act==="link"){
+      makeShareLink(rec.name, rec.items || [], viewFromTuple(rec.view), rowKey({id, saved:rec.saved}));
+      return;                                   // makeShareLink re-renders
     }else if(b.dataset.act==="dup"){
       const copy = JSON.parse(JSON.stringify(rec));
       copy.name = `${rec.name} copy`;
@@ -1411,28 +1480,12 @@ function renderFiles(){
     rd.readAsText(f);
   });
 
-  if(linkFresh) el.querySelector("#lay-linkbox").value = shareUrl;
+  const box = el.querySelector(".linkbox");
+  if(box) box.value = shareUrl;
 
-  el.querySelector("#lay-link").addEventListener("click", async ()=>{
+  el.querySelector("#lay-link").addEventListener("click", ()=>{
     const name = (el.querySelector("#lay-name").value||"").trim() || currentName;
-    let copied = false;
-    try{
-      const forJSON = itemsJSON();
-      const url = shareBase() + "#" + await encodeShare(name, itemData(), {view:cam});
-      shareUrl = url; shareUrlFor = forJSON;
-      try{ await navigator.clipboard.writeText(url); copied = true; }
-      catch(err){ copied = false; }
-      fileMsg = copied
-        ? `Share link copied — ${url.length} characters. Anyone who opens it gets this exact layout.`
-        : "Couldn't reach the clipboard — the link is below, select it and copy.";
-      fileMsgErr = false;
-    }catch(err){
-      shareUrl = null; shareUrlFor = null;
-      fileMsg = "Couldn't build a share link — " + err.message; fileMsgErr = true;
-    }
-    renderFiles();
-    const box = document.getElementById("lay-linkbox");
-    if(box && !copied){ box.focus(); box.select(); }
+    makeShareLink(name, itemData(), cam, curKey());
   });
 }
 
@@ -1564,8 +1617,11 @@ function init3D(){
     no3D("The 3D view lost its WebGL context. Reload the page to bring it back — the plan is unaffected.");
   });
   window.addEventListener("resize", resize3D);
+  // A backgrounded tab suspends rAF (which is the browser saving us the work)
+  // and can drop the drawing buffer, so redraw once on the way back.
+  document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) invalidate(); });
   resize3D();
-  animate();
+  invalidate();
 }
 
 function addWallBox(x1,z1,x2,z2,h,yBase){
@@ -1603,10 +1659,11 @@ function build3DItems(){
     itemRoot.add(g);
     meshById[it.id] = g;
   }
+  invalidate();
 }
 function move3D(it){
   const g = meshById[it.id];
-  if(g){ g.position.set(it.x, it.mount||0, it.y); g.rotation.y = -rad(it.rot); }
+  if(g){ g.position.set(it.x, it.mount||0, it.y); g.rotation.y = -rad(it.rot); invalidate(); }
 }
 
 function itemMesh(it){
@@ -1815,6 +1872,7 @@ function attachOrbit(canvas){
       cam.tz -= Math.cos(cam.theta)*dx*s;
       cam.ty += dy*s;
     }
+    invalidate();
   });
   const stop=()=>{ if(mode){ mode=null; queueAutosave(); } };
   canvas.addEventListener("pointerup",stop);
@@ -1822,6 +1880,7 @@ function attachOrbit(canvas){
   canvas.addEventListener("wheel",e=>{
     e.preventDefault();
     cam.r = Math.max(900, Math.min(20000, cam.r * (1 + Math.sign(e.deltaY)*0.12)));
+    invalidate();
     queueAutosave();          // debounced, so a burst of wheel events collapses
   },{passive:false});
 }
@@ -1833,12 +1892,23 @@ function resize3D(){
   renderer.setSize(w,h,false);
   camera.aspect = w/h;
   camera.updateProjectionMatrix();
+  invalidate();
 }
 
-let running = true;
+let running = true, rafId = null;
+
+/* Nothing in this scene animates. Rendering on every rAF just burns a core
+   and a GPU process redrawing an identical image, so draw only when
+   something has actually changed and let the loop fall idle otherwise.
+   Everything that moves the camera or the meshes calls invalidate(). */
+function invalidate(){
+  if(!running || !renderer || rafId !== null) return;
+  rafId = requestAnimationFrame(animate);
+}
+
 function animate(){
+  rafId = null;
   if(!running) return;
-  requestAnimationFrame(animate);
   const cx = cam.tx, cy = cam.ty, cz = cam.tz;
   camera.position.set(
     cx + cam.r*Math.cos(cam.phi)*Math.cos(cam.theta),
