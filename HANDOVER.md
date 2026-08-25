@@ -178,6 +178,12 @@ Each of these was a real bug, found and fixed:
 - **A `noclash` item is inert on both sides.** Flagging the plant has to stop the *shelf*
   reporting a clash too, which is why `clashes()` filters `inert` inside the `.some()` as
   well as at the top.
+- **The GO block's order is load-bearing.** `setNav()` and `setView()` both call
+  `resize3D()`, which reads `renderer` — declared with `let` further down the file. Calling
+  either at definition time throws on the temporal dead zone and kills the rest of the
+  script, which presents as a completely blank plan. They are applied at the very end,
+  after `init3D()`, which also keeps the WebGL context from ever being requested on a
+  `display:none` canvas.
 - **Digging an item out with Behind has to survive the next `pointerdown`.** Anything
   Behind reaches is by definition not topmost, so `closest(".item")` hands the selection
   straight back to whatever covers it and the item can be selected but never dragged.
@@ -233,6 +239,26 @@ recoverable cause, not a verified fix for Mark's machine. If it still fails, the
 now carries the real error, which is the thing to go on. three.js is pinned at r128
 (2021); a newer build is a plausible next thing to try, but the post-r128 API changes make
 it more than a version bump.
+
+## Phones
+
+Two breakpoints. **≤900px** stacks the two panes vertically and narrows the sidebar.
+**≤700px** is the phone layout:
+
+- The sidebar **slides over** the stage as a 320px drawer with a tappable scrim, rather
+  than squeezing it — at 288px it was taking two thirds of a 375px screen. It collapses at
+  every width, though; on desktop it stays in flow and just goes to zero, handing the
+  space to the panes.
+- The header must never wrap. `h1` is `nowrap` + ellipsis, the room dimensions in the
+  `<span>` are hidden (they are dimensioned on the plan anyway), **Split** is hidden since
+  two slivers on a phone helps nobody, and Reset lost the word "layout". Three wrapped
+  lines of title were what pushed the whole app down the screen.
+- The phone opens on **Plan**, not Split.
+- `.hint` and `.pane-hd` are hidden — the hints talk about right-drag and arrow keys, and
+  the pane label collided with the chips.
+- Every focusable input is **≥16px** on phones, below which iOS zooms the page on focus.
+- `#c3d` needs `touch-action:none` the same as `#plan`, or orbiting scrolls the page.
+- `height:100dvh` so the phone browser's chrome stops covering the bottom of the app.
 
 ## The Files panel
 
