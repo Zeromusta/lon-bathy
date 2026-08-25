@@ -302,6 +302,22 @@ Two breakpoints. **≤900px** stacks the two panes vertically and narrows the si
   happens to be loaded. Worth re-testing if you touch `makeShareLink`; it is an easy thing
   to get subtly wrong and never notice.
 
+## The default layout
+
+`startingLayout()` is Mark's plan as exported from the app on 25 Aug 2026, and
+`VIEW_DEF` is the camera that came with it. It is what a fresh visit shows and what
+**Reset** restores — fixtures and camera both, since the view is part of the starting
+state.
+
+Neither is link-affecting: `startingLayout()` is never encoded, and `VIEW_DEF` only ever
+serves as a per-field fallback for a view tuple that will not read, which a well-formed
+link never hits.
+
+The table lists only what differs from the catalogue default, the same rule the share
+codec uses, so it reads like a decoded link. It carries **2 clashes** as exported (the
+towel rail against the corner shelf on the left wall) — that is the layout as saved, not
+a reconstruction error.
+
 ## Open questions for Mark
 
 - **Bath taps** are on the right-hand wall at the end nearest the WC. Best guess from

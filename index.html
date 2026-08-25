@@ -482,19 +482,31 @@ CAT.forEach(g=>g.items.forEach(i=>DEF[i.t]=i));
 /* ==CATALOGUE-END== */
 
 /* =====================================================================
-   DEFAULT LAYOUT — my reading of the sketch
+   DEFAULT LAYOUT
+   Mark's plan, exported from the app on 25 Aug 2026. Anything not listed
+   in the trailing object comes from the catalogue default — the same rule
+   the share codec uses, so this table reads like a decoded link.
    ===================================================================== */
 function startingLayout(){
+  const L = (t, x, y, rot, over) => ({...mk(t, x, y, rot), ...over});
   return [
-    mk("glass", 1400, 800,   0,  "Shower glass"),
-    mk("head",  1875, 400,   0,  "Shower head"),
-    mk("gully", 1400, 120,   0,  "Linear drain"),
-    mk("vanity", 225, 1800, 270, "Vanity"),
-    mk("mircab",  75, 1800, 270, "Mirror cabinet"),
-    mk("wcfloor", 1450, 1200, 90, "WC"),
-    mk("bath",  1425, 2750, 90,  "Bath"),
-    mk("rail",    55, 2900, 90,  "Towel rail"),
-    mk("planttall", 1600, 1750, 0, "Pot plant, tall")
+    L("glass",      1300,  796,   0, {w:1000}),
+    L("head",       1875,  400,   0),
+    L("gully",      1960,  387,  90, {w:700}),
+    L("vanity",      200, 2400, 270, {n:"Vanity", w:1000, d:400}),
+    L("mircab",       75, 2400, 270, {w:1000}),
+    L("wc",         1530, 1344,  90, {n:"WC", mount:100}),
+    L("bath",       1425, 2750,  90),
+    L("planttall",  1600, 1758,   0, {noclash:1}),
+    L("chute",        25, 1304, 270, {d:50, mount:1500}),
+    L("rail",         55, 1296,  90, {w:750, h:1000, mount:400}),
+    L("rail",       1745, 2755,  90, {n:"Towel rail 2", w:750, h:1000, mount:800}),
+    L("cornersh",    100,  900,   0, {n:"Corner shelf 2", mount:1200}),
+    L("plantshort",   75,  875,   0, {w:150, d:150, h:300, mount:1580, noclash:1}),
+    L("plantshort",   75,  875,   0, {n:"Pot plant, short 2", w:150, d:150, h:300, mount:2380, noclash:1}),
+    L("floatshelf", 1700, 1355,  90, {w:700, mount:1400}),
+    L("floatshelf", 1700, 1340,  90, {n:"Floating shelf 2", w:700, mount:1800}),
+    L("rollstand",  1710,  930,  90)
   ];
 }
 let uid = 1;
@@ -1105,7 +1117,7 @@ function expandItems(tuples){
 /* The 3D camera travels with the layout. Angles go as thousandths of a
    radian and distances as whole mm, so a whole view is six small integers —
    cheap in the link, and deflate likes digits. */
-const VIEW_DEF = {theta:-Math.PI/2 + 0.55, phi:0.92, r:6400, tx:1000, ty:850, tz:1750};
+const VIEW_DEF = {theta:1.68, phi:0.38, r:6654, tx:1332, ty:457, tz:851};
 const wrapPi = a => { const t = (a + Math.PI) % (Math.PI*2); return (t<0 ? t+Math.PI*2 : t) - Math.PI; };
 
 const viewTuple = c => [
@@ -1577,8 +1589,10 @@ navBtn.addEventListener("click", ()=> setNav(!appEl.classList.contains("nav-open
 document.getElementById("scrim").addEventListener("click", ()=> setNav(false));
 document.getElementById("btn-reset").addEventListener("click",()=>{
   items = startingLayout(); sel = null;
+  pickStack = []; deepPickId = null;
   currentId = null; currentName = "Bathroom plan"; lastSavedJSON = null; lastSavedAt = null;
   fileMsg = null;
+  Object.assign(cam, VIEW_DEF); invalidate();   // the view is part of the starting state
   refresh(true);
 });
 
