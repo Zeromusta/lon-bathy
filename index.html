@@ -1809,9 +1809,11 @@ function itemMesh(it){
       const hung = new THREE.Mesh(new THREE.CylinderGeometry(rollR, rollR, rollW, 24), tissue());
       hung.rotation.x = Math.PI/2;
       hung.position.set(0, armY, zRoll); g.add(hung);
-      // a couple of sheets hanging off the front of it
-      const tail = boxMesh(rollW*0.92, rollR*1.5, 5, 0xFBFAF8);
-      tail.position.set(0, armY - rollR*0.85, zRoll + rollR*0.92); g.add(tail);
+      // The sheet peels off the circumference, so it spans the roll to width
+      // (along z, the arm) and hangs down its side — not a flap off the end
+      // face, which is what you get if you build it in the x-y plane.
+      const tail = boxMesh(4, rollR*1.5, rollW*0.92, 0xFBFAF8);
+      tail.position.set(rollR*0.92, armY - rollR*0.85, zRoll); g.add(tail);
 
       // spares stacked on a spike at the front
       const spikeR = Math.max(5, postT*0.16);
