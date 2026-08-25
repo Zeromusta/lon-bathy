@@ -43,7 +43,7 @@ over https.
 ## Tests
 
 ```bash
-node test/share-codec.test.mjs
+node test/share-codec.test.mjs && node test/link-compat.test.mjs
 ```
 
 Covers the share codec: round-tripping every fixture type, items modified away from the
@@ -51,6 +51,10 @@ catalogue defaults, non-ASCII and HTML-ish layout names, the uncompressed fallba
 and that truncated, corrupted, over-long and wrong-version payloads all produce a
 readable error rather than a blank room. It slices the marked regions out of
 `index.html`, so the single-file app stays a single file.
+
+`link-compat` is the one that matters once links are out in the world: it holds payloads
+captured from shipped builds and checks they still decode to exactly what they decoded to
+when they were made. Those payloads are frozen — if one fails, fix the code, not the test.
 
 ## Orientation
 

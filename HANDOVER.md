@@ -84,6 +84,28 @@ Camera movement autosaves (debounced) but deliberately does **not** mark the lay
 — `itemsJSON()` stays items-only, so nudging the view doesn't flash "Unsaved changes".
 The same goes for the share link box's freshness check.
 
+### Links are in live use — do not break them
+
+Real links are out there in messages. **An old link must keep decoding to exactly what it
+decoded to when it was made.** `node test/link-compat.test.mjs` holds a corpus of frozen
+payloads captured from a shipped build; if one of them starts decoding differently, the
+fix is the code, not the corpus. Never regenerate that file.
+
+Safe: **adding** a fixture type. No existing link can contain a key that didn't exist.
+
+Not safe, in ways that fail silently rather than loudly:
+
+- **Renaming or removing a type key.** `restore()` filters unknown types, so the fixture
+  just disappears from every link that had one.
+- **Changing an existing type's default `w`/`d`/`h`/`mount`/`n`.** This is the subtle one.
+  `compactItems` omits any field that matches the catalogue default, so a link written
+  when `bath` was 1500 wide carries no width at all — change the default to 1600 and that
+  link now decodes to a wider bath than the person laid out. If a default really must
+  change, add a new type instead and leave the old one in the catalogue.
+- Reordering the item tuple, renaming an extras key (`n`/`w`/`d`/`h`/`mount`/`nc`), or
+  bumping `SHARE_V`.
+- Changing the view tuple's order or its thousandths-of-a-radian scaling.
+
 ### Decoding is the untrusted path
 
 - It routes through the existing `restore()`, so unknown fixture types are still filtered
@@ -134,8 +156,11 @@ Everything is in **millimetres**, origin at the outer corner of the shower reces
 ## Tests
 
 ```bash
-node test/share-codec.test.mjs
+node test/share-codec.test.mjs     # the codec's behaviour
+node test/link-compat.test.mjs     # frozen payloads from live links still decode
 ```
+
+Run **both** before pushing anything that touches the catalogue or the codec.
 
 The share codec is covered properly: round trips, items modified away from the defaults,
 non-ASCII and HTML-ish names, the uncompressed path, and every corruption case. It slices
