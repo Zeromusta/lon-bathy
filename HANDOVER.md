@@ -95,8 +95,11 @@ Everything is in **millimetres**, origin at the outer corner of the shower reces
 - `inert(i)` — `PHANTOM` type or `noclash` set. The single test `clashes()` uses.
 - `itemsAt(x,y)` / `currentStack()` / `pickBehind()` — the overlap stack under the last
   click, topmost first, which the **Behind** button and the `B` key walk down. Needed
-  because the mirror cabinet sits directly over the vanity and SVG hit-testing only ever
-  returns the top one.
+  because the mirror cabinet sits inside the vanity's footprint and SVG hit-testing only
+  ever returns the top one. `zRank` mirrors `renderPlan`'s `zOrder`, so the stack is
+  numbered the way the plan is painted; change one and you must change the other.
+- `deepPickId` — the item `pickBehind()` last dug out. While it is both selected and under
+  the cursor it keeps the drag; any other selection clears it, so it self-cleans.
 - `taperBox(w,h,d,k,…)` — a box narrowed towards the bottom, built from a 4-segment
   cylinder turned 45°. Exact `w × h × d` bounds, so 3D footprints still match 2D.
 - `makeRenderer()` — WebGL context with a step-down ladder; see the Firefox note below.
@@ -151,6 +154,12 @@ Each of these was a real bug, found and fixed:
 - **A `noclash` item is inert on both sides.** Flagging the plant has to stop the *shelf*
   reporting a clash too, which is why `clashes()` filters `inert` inside the `.some()` as
   well as at the top.
+- **Digging an item out with Behind has to survive the next `pointerdown`.** Anything
+  Behind reaches is by definition not topmost, so `closest(".item")` hands the selection
+  straight back to whatever covers it and the item can be selected but never dragged.
+  `deepPickId` is what holds it. Don't widen that to "keep whatever is selected": an item
+  can be selected while something painted *over* it is what the user just clicked, and
+  they should get the thing they clicked.
 - **Link loading hangs off `hashchange` as well as startup.** Pasting a link into a tab
   that already has the planner open changes the hash without reloading, so a startup-only
   hook silently does nothing. `replaceState` on save doesn't fire it, which is what makes

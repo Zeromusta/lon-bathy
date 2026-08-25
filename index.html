@@ -534,8 +534,9 @@ function pointInItem(it, px, py){
   }
   return ins;
 }
+const zRank = i => (i.mount||0) ? 0 : 1;      // must match renderPlan's zOrder
 const itemsAt = (px,py) => items.filter(i=>pointInItem(i,px,py))
-                                .sort((a,b)=>(b.mount||0)-(a.mount||0));
+                                .sort((a,b)=>zRank(b)-zRank(a));
 
 /* nearest blocker in each direction, from the item's bounding box */
 function gaps(it){
@@ -747,6 +748,7 @@ function renderChips(){
    ===================================================================== */
 let drag = null;
 let pickStack = [], pickIdx = 0;
+let deepPickId = null;   // what Behind last dug out, so a drag doesn't undo it
 
 /* The stack under the last click, pruned of anything since deleted. If the
    selection moved on some other way, rebuild it from the item's centre. */
@@ -766,6 +768,7 @@ function pickBehind(){
   pickStack = st;
   pickIdx = (st.indexOf(sel) + 1) % st.length;
   sel = st[pickIdx];
+  deepPickId = sel;
   refresh(true);
 }
 
@@ -777,17 +780,26 @@ function svgPt(evt){
 
 svg.addEventListener("pointerdown", e=>{
   const g = e.target.closest(".item");
-  if(!g){ sel=null; pickStack=[]; refresh(); return; }
-  const id = +g.dataset.id;
-  const it = items.find(i=>i.id===id);
-  sel = id;
-  setPanel("inspect");
   const p = svgPt(e);
-  // what else is under the cursor, so Behind can walk down the pile
-  pickStack = itemsAt(p.x, p.y).map(i=>i.id);
-  if(!pickStack.includes(id)) pickStack.unshift(id);
-  pickIdx = pickStack.indexOf(id);
-  drag = {id, ox:p.x-it.x, oy:p.y-it.y, moved:false};
+  const under = itemsAt(p.x, p.y);
+
+  // Hit-testing only ever hands back the topmost shape. Something dug out
+  // with Behind is by definition not topmost, so pressing to drag it would
+  // hand the selection straight back to whatever is covering it. While the
+  // dug-out item is still under the cursor, it keeps the drag. Selecting
+  // anything else clears deepPickId, so ordinary clicks are unaffected.
+  const keep = sel !== null && sel === deepPickId && under.some(i=>i.id===sel);
+  const it = keep ? items.find(i=>i.id===sel)
+                  : (g ? items.find(i=>i.id === +g.dataset.id) : null);
+  if(!it){ sel = null; pickStack = []; deepPickId = null; refresh(); return; }
+
+  sel = it.id;
+  if(!keep) deepPickId = null;
+  setPanel("inspect");
+  pickStack = under.map(i=>i.id);
+  if(!pickStack.includes(it.id)) pickStack.unshift(it.id);
+  pickIdx = pickStack.indexOf(it.id);
+  drag = {id:it.id, ox:p.x-it.x, oy:p.y-it.y, moved:false};
   svg.style.cursor = "grabbing";
   svg.setPointerCapture(e.pointerId);
   refresh();
